@@ -6,6 +6,9 @@ This checkout uses Dafeiyu character animations by default. See the
 [integration guide (Chinese)](./assets/dafeiyu/README_CN.md) for resource mapping,
 VoCat configuration notes, conversion, and flashing the `anim_icon` partition.
 
+An optional [DSH desktop status bridge (Chinese)](./DSH_BRIDGE_CN.md) exposes
+the PC's task status, project, and todo counts through a XiaoZhi MCP tool.
+
 This example demonstrates how to build a complete AI voice chatbot based on the ESP-Brookesia framework. It supports wake-word detection, multiple AI agents with runtime switching, expression animations, gesture navigation, and direct hardware control through MCP tools.
 
 ## 📑 Table of Contents

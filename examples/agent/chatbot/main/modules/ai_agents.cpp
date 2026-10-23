@@ -26,6 +26,7 @@
 #include "private/utils.hpp"
 #include "modules/display/display.hpp"
 #include "ai_agents.hpp"
+#include "dsh_bridge.hpp"
 
 using namespace esp_brookesia;
 
@@ -299,6 +300,10 @@ void AI_Agents::init_xiaozhi()
 
     if (!add_camera_mcp_tool()) {
         BROOKESIA_LOGW("XiaoZhi camera MCP tool is unavailable, continue without camera");
+    }
+
+    if (!dsh_bridge::register_mcp_tool()) {
+        BROOKESIA_LOGW("DSH status MCP tool is unavailable; check the PC bridge configuration");
     }
 
     // Subscribe to activation code received event
