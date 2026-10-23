@@ -213,6 +213,13 @@ bool Display::start_expression_emote_assets()
         BROOKESIA_CHECK_FALSE_RETURN(result.has_value(), false, "Failed to load emote assets: %1%", result.error());
     }
 
+#if CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS
+    {
+        auto result = EmoteHelper::call_function_sync(EmoteHelper::FunctionId::SetEmoji, "neutral");
+        BROOKESIA_CHECK_FALSE_RETURN(result.has_value(), false, "Failed to show Dafeiyu: %1%", result.error());
+    }
+#endif
+
     {
         auto result = EmoteHelper::call_function_sync(
                           EmoteHelper::FunctionId::SetEventMessage,

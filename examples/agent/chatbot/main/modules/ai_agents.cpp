@@ -640,7 +640,11 @@ void AI_Agents::process_emote_when_general_action_triggered()
             break;
         case AgentHelper::GeneralAction::Stop:
             is_stopped_ = true;
+#if CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS
+            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "neutral");
+#else
             EmoteHelper::call_function_async(EmoteHelper::FunctionId::HideEmoji);
+#endif
             EmoteHelper::call_function_async(
                 EmoteHelper::FunctionId::SetEventMessage,
                 BROOKESIA_DESCRIBE_TO_STR(EmoteHelper::EventMessageType::System), "[Agent] Stopping..."
@@ -768,12 +772,18 @@ void AI_Agents::process_emote_when_speaking_status_changed()
         }
 
         if (is_speaking) {
+#if CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS
+            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "speaking");
+#endif
             EmoteHelper::call_function_async(
                 EmoteHelper::FunctionId::SetEventMessage,
                 BROOKESIA_DESCRIBE_TO_STR(EmoteHelper::EventMessageType::Speak)
             );
         } else if (!is_listening()) {
             // Only hide event message when the agent is not listening
+#if CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS
+            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "neutral");
+#endif
             EmoteHelper::call_function_async(EmoteHelper::FunctionId::HideEventMessage);
         }
         is_speaking_ = is_speaking;
@@ -804,12 +814,18 @@ void AI_Agents::process_emote_when_listening_status_changed()
         }
 
         if (is_listening) {
+#if CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS
+            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "listening");
+#endif
             EmoteHelper::call_function_async(
                 EmoteHelper::FunctionId::SetEventMessage,
                 BROOKESIA_DESCRIBE_TO_STR(EmoteHelper::EventMessageType::Listen)
             );
         } else if (!is_speaking()) {
             // Only hide event message when the agent is not speaking
+#if CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS
+            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "thinking");
+#endif
             EmoteHelper::call_function_async(EmoteHelper::FunctionId::HideEventMessage);
         }
         is_listening_ = is_listening;

@@ -71,8 +71,40 @@ if (NOT RESOLUTION IN_LIST SUPPORTED_RESOLUTIONS)
     endif()
 endif()
 message(STATUS "Asset Resolution: ${RESOLUTION}")
-set(ASSETS_FILE "${CMAKE_BINARY_DIR}/${ASSETS_BIN_NAME}.bin")
-build_speaker_assets_bin(${ASSETS_BIN_NAME} ${RESOLUTION} ${ASSETS_FILE} ${CONFIG_MMAP_FILE_NAME_LENGTH})
+if(CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS)
+    set(DAFEIYU_ASSETS_DIR "${CMAKE_CURRENT_LIST_DIR}/../assets/dafeiyu")
+    set(DAFEIYU_PACKER "${CMAKE_CURRENT_LIST_DIR}/../tools/build_dafeiyu_assets.py")
+    get_component_path("esp_emote_assets" EMOTE_ASSETS_COMPONENT_DIR)
+    partition_table_get_partition_info(ASSETS_PARTITION_SIZE
+        "--partition-name ${ASSETS_PARTITION_NAME}" "size")
+    file(GLOB_RECURSE DAFEIYU_ASSET_FILES CONFIGURE_DEPENDS
+        "${DAFEIYU_ASSETS_DIR}/${RESOLUTION}/*.eaf"
+        "${DAFEIYU_ASSETS_DIR}/${RESOLUTION}/*.json")
+    file(GLOB_RECURSE EMOTE_SUPPORT_FILES CONFIGURE_DEPENDS
+        "${EMOTE_ASSETS_COMPONENT_DIR}/font/*.bin"
+        "${EMOTE_ASSETS_COMPONENT_DIR}/emoji_*/*.bin"
+        "${EMOTE_ASSETS_COMPONENT_DIR}/emoji_*/listen.eaf"
+        "${EMOTE_ASSETS_COMPONENT_DIR}/${RESOLUTION}/*.json")
+    set(ASSETS_FILE "${CMAKE_BINARY_DIR}/${ASSETS_BIN_NAME}_dafeiyu.bin")
+    add_custom_command(
+        OUTPUT "${ASSETS_FILE}"
+        COMMAND "${PYTHON}" "${DAFEIYU_PACKER}"
+            --component "${EMOTE_ASSETS_COMPONENT_DIR}"
+            --assets "${DAFEIYU_ASSETS_DIR}"
+            --resolution "${RESOLUTION}"
+            --name-length "${CONFIG_MMAP_FILE_NAME_LENGTH}"
+            --partition-size "${ASSETS_PARTITION_SIZE}"
+            --output "${ASSETS_FILE}"
+        DEPENDS "${DAFEIYU_PACKER}" ${DAFEIYU_ASSET_FILES} ${EMOTE_SUPPORT_FILES}
+        COMMENT "Building Dafeiyu expression assets"
+        VERBATIM
+    )
+    add_custom_target(generated_dafeiyu_assets ALL DEPENDS "${ASSETS_FILE}")
+    add_dependencies(flash generated_dafeiyu_assets)
+else()
+    set(ASSETS_FILE "${CMAKE_BINARY_DIR}/${ASSETS_BIN_NAME}.bin")
+    build_speaker_assets_bin(${ASSETS_BIN_NAME} ${RESOLUTION} ${ASSETS_FILE} ${CONFIG_MMAP_FILE_NAME_LENGTH})
+endif()
 message(STATUS "Generated emote assets: ${ASSETS_FILE} -> ${ASSETS_PARTITION_NAME} partition")
 esptool_py_flash_to_partition(flash ${ASSETS_PARTITION_NAME} "${ASSETS_FILE}")
 

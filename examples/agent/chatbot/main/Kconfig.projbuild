@@ -1,4 +1,12 @@
 menu "Example Configuration"
+    config EXAMPLE_USE_DAFEIYU_EXPRESSIONS
+        bool "Use Dafeiyu character animations"
+        default y
+        help
+            Replace the chatbot's shared expression assets with the Dafeiyu
+            character from QCYTSN/dsh-dafeiyu. Includes local EAF animations
+            for the supported display resolutions. Disable to use stock faces.
+
     menuconfig EXAMPLE_AGENTS_ENABLE_COZE
         bool "Enable Coze agent"
         select BROOKESIA_AGENT_COZE_ENABLE_AUTO_REGISTER
