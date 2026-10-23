@@ -98,9 +98,34 @@ menu "Example Configuration"
         select BROOKESIA_AGENT_XIAOZHI_ENABLE_AUTO_REGISTER
         default y
 
+    menuconfig EXAMPLE_DSH_PET_SYNC_ENABLE
+        bool "Enable direct DSH pet state push and local MCP status"
+        depends on EXAMPLE_USE_DAFEIYU_EXPRESSIONS
+        default n
+        help
+            Receive dsh-pet work status directly from a DSH Host plugin and
+            display local animations. No Python bridge or cloud call is needed
+            for animation sync. If Xiaozhi is enabled, its DSH.GetStatus tool
+            reads the pushed snapshot locally.
+
+    if EXAMPLE_DSH_PET_SYNC_ENABLE
+        config EXAMPLE_DSH_PET_SYNC_PORT
+            int "DSH push receiver TCP port"
+            range 1024 65535
+            default 8766
+
+        config EXAMPLE_DSH_PET_SYNC_TOKEN
+            string "DSH push receiver access token"
+            default ""
+            help
+                Use the same 24-128 character URL-safe token in the DSH plugin
+                configuration. An empty or invalid token disables the receiver.
+    endif
+
     menuconfig EXAMPLE_DSH_BRIDGE_ENABLE
         bool "Enable DSH desktop status MCP tool"
         depends on EXAMPLE_AGENTS_ENABLE_XIAOZHI
+        depends on !EXAMPLE_DSH_PET_SYNC_ENABLE
         default n
         help
             Query the PC bridge for dsh-pet work status and current task text.

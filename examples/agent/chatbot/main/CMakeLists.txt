@@ -12,7 +12,7 @@ endif()
 idf_component_register(
     SRCS ${SRCS}
     INCLUDE_DIRS "."
-    PRIV_REQUIRES esp_http_client
+    PRIV_REQUIRES esp_http_client esp_http_server esp_timer
     EMBED_TXTFILES ${EMBEDDED_FILES}
 )
 

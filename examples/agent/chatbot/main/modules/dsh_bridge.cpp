@@ -3,8 +3,9 @@
  */
 #include "sdkconfig.h"
 #include "dsh_bridge.hpp"
+#include "dsh_pet_sync.hpp"
 
-#if CONFIG_EXAMPLE_DSH_BRIDGE_ENABLE
+#if CONFIG_EXAMPLE_DSH_BRIDGE_ENABLE || CONFIG_EXAMPLE_DSH_PET_SYNC_ENABLE
 #include <algorithm>
 #include <string>
 #include <utility>
@@ -18,8 +19,8 @@ namespace {
 
 using namespace esp_brookesia;
 using XiaoZhiHelper = service::helper::XiaoZhi;
+#if !CONFIG_EXAMPLE_DSH_PET_SYNC_ENABLE
 constexpr size_t MAX_RESPONSE_BYTES = 8192;
-
 struct Response {
     std::string body;
     bool overflow = false;
@@ -55,10 +56,16 @@ service::FunctionResult failure(const std::string &message)
     };
     return service::FunctionResult{.success = true, .data = service::FunctionValue(std::move(status))};
 }
+#endif
 
 service::FunctionResult get_status(service::FunctionParameterMap &&params)
 {
     (void)params;
+#if CONFIG_EXAMPLE_DSH_PET_SYNC_ENABLE
+    return service::FunctionResult{
+        .success = true, .data = service::FunctionValue(dsh_pet_sync::status()),
+    };
+#else
     std::string url = CONFIG_EXAMPLE_DSH_BRIDGE_URL;
     while (!url.empty() && (url.back() == '/')) {
         url.pop_back();
@@ -114,6 +121,7 @@ service::FunctionResult get_status(service::FunctionParameterMap &&params)
         .success = true,
         .data = service::FunctionValue(std::move(object)),
     };
+#endif
 }
 
 } // namespace
@@ -121,8 +129,9 @@ service::FunctionResult get_status(service::FunctionParameterMap &&params)
 
 bool dsh_bridge::register_mcp_tool()
 {
-#if CONFIG_EXAMPLE_DSH_BRIDGE_ENABLE
+#if CONFIG_EXAMPLE_DSH_BRIDGE_ENABLE || CONFIG_EXAMPLE_DSH_PET_SYNC_ENABLE
     using namespace esp_brookesia;
+#if !CONFIG_EXAMPLE_DSH_PET_SYNC_ENABLE
     const std::string url = CONFIG_EXAMPLE_DSH_BRIDGE_URL;
     const std::string token = CONFIG_EXAMPLE_DSH_BRIDGE_TOKEN;
     if ((url.rfind("http://", 0) != 0) || (url.size() <= 7) ||
@@ -130,6 +139,7 @@ bool dsh_bridge::register_mcp_tool()
             !std::all_of(token.begin(), token.end(), is_token_character)) {
         return false;
     }
+#endif
     mcp_utils::CustomTool tool{
         .schema = {
             .name = "DSH.GetStatus",

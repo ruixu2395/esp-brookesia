@@ -1,5 +1,8 @@
 # 用小智语音查询电脑上的 DSH（dsh-pet）
 
+本页是旧的独立 Python 桥接方案。需要自动同步动画并由 DSH 直接推送时，请使用
+[DSH 直接推送方案](./DSH_PET_SYNC_CN.md)，该方案的语音查询也直接读取设备缓存。
+
 电脑桥接已迁移到 [PC2005-cloud/dsh-pet](https://github.com/PC2005-cloud/dsh-pet)，
 通过小智 MCP 工具查询插件发布的工作状态和当前任务文本。可以问：
 

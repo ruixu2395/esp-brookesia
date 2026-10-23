@@ -6,7 +6,10 @@ This checkout uses Dafeiyu character animations by default. See the
 [integration guide (Chinese)](./assets/dafeiyu/README_CN.md) for resource mapping,
 VoCat configuration notes, conversion, and flashing the `anim_icon` partition.
 
-An optional [DSH desktop status bridge (Chinese)](./DSH_BRIDGE_CN.md) exposes
+The [direct DSH pet sync integration (Chinese)](./DSH_PET_SYNC_CN.md) runs inside DSH,
+pushes work status to the device, and drives local animations and voice status queries without Python.
+
+The older optional [DSH desktop status bridge (Chinese)](./DSH_BRIDGE_CN.md) exposes
 the PC's `dsh-pet` work status and current task text through a XiaoZhi MCP tool.
 The plugin's public API does not provide project names or todo counts.
 

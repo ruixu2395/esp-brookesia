@@ -1,0 +1,3 @@
+- insert:
+    - id: dsh-esp32-sync
+      name: 'dsh-esp32-sync'

@@ -15,6 +15,7 @@
 #include "modules/general_services.hpp"
 #include "modules/profiler.hpp"
 #include "modules/display/display.hpp"
+#include "modules/dsh_pet_sync.hpp"
 
 using namespace esp_brookesia;
 
@@ -88,6 +89,10 @@ extern "C" void app_main(void)
         Display::get_instance().start({
             .task_scheduler = backend_scheduler,
         });
+
+        if (!dsh_pet_sync::start()) {
+            BROOKESIA_LOGW("DSH direct push receiver is unavailable; check its token configuration");
+        }
 
         /* Start WiFi provisioning module */
         WifiProvisioning::get_instance().init({

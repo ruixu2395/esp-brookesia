@@ -27,6 +27,7 @@
 #include "modules/display/display.hpp"
 #include "ai_agents.hpp"
 #include "dsh_bridge.hpp"
+#include "dsh_pet_sync.hpp"
 
 using namespace esp_brookesia;
 
@@ -303,7 +304,7 @@ void AI_Agents::init_xiaozhi()
     }
 
     if (!dsh_bridge::register_mcp_tool()) {
-        BROOKESIA_LOGW("DSH status MCP tool is unavailable; check the PC bridge configuration");
+        BROOKESIA_LOGW("DSH status MCP tool is unavailable; check the DSH status configuration");
     }
 
     // Subscribe to activation code received event
@@ -603,14 +604,14 @@ void AI_Agents::process_emote_when_general_action_triggered()
 
         switch (general_action_enum) {
         case AgentHelper::GeneralAction::TimeSync:
-            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "winking");
+            dsh_pet_sync::set_local_emoji("winking");
             EmoteHelper::call_function_async(
                 EmoteHelper::FunctionId::SetEventMessage,
                 BROOKESIA_DESCRIBE_TO_STR(EmoteHelper::EventMessageType::System), "[Agent] Time Syncing..."
             );
             break;
         case AgentHelper::GeneralAction::Activate:
-            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "winking");
+            dsh_pet_sync::set_local_emoji("winking");
             EmoteHelper::call_function_async(
                 EmoteHelper::FunctionId::SetEventMessage,
                 BROOKESIA_DESCRIBE_TO_STR(EmoteHelper::EventMessageType::System), "[Agent] Activating..."
@@ -626,8 +627,9 @@ void AI_Agents::process_emote_when_general_action_triggered()
             );
             break;
         case AgentHelper::GeneralAction::Sleep: {
+            dsh_pet_sync::set_voice_active(false);
             is_sleeping_ = true;
-            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "sleepy");
+            dsh_pet_sync::set_local_emoji("sleepy");
             if (!is_suspended()) {
                 EmoteHelper::call_function_async(
                     EmoteHelper::FunctionId::SetEventMessage,
@@ -637,6 +639,7 @@ void AI_Agents::process_emote_when_general_action_triggered()
             break;
         }
         case AgentHelper::GeneralAction::WakeUp:
+            dsh_pet_sync::set_voice_active(true);
             is_sleeping_ = false;
             EmoteHelper::call_function_async(
                 EmoteHelper::FunctionId::SetEventMessage,
@@ -644,9 +647,10 @@ void AI_Agents::process_emote_when_general_action_triggered()
             );
             break;
         case AgentHelper::GeneralAction::Stop:
+            dsh_pet_sync::set_voice_active(false);
             is_stopped_ = true;
 #if CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS
-            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "neutral");
+            dsh_pet_sync::set_local_emoji("neutral");
 #else
             EmoteHelper::call_function_async(EmoteHelper::FunctionId::HideEmoji);
 #endif
@@ -697,7 +701,7 @@ void AI_Agents::process_emote_when_general_event_happened()
             break;
         }
         case AgentHelper::GeneralEvent::Started: {
-            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "neutral");
+            dsh_pet_sync::set_local_emoji("neutral");
             EmoteHelper::call_function_async(
                 EmoteHelper::FunctionId::SetEventMessage,
                 BROOKESIA_DESCRIBE_TO_STR(EmoteHelper::EventMessageType::System), "[Agent] Started"
@@ -705,7 +709,8 @@ void AI_Agents::process_emote_when_general_event_happened()
             break;
         }
         case AgentHelper::GeneralEvent::Awake: {
-            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "neutral");
+            dsh_pet_sync::set_voice_active(true);
+            dsh_pet_sync::set_local_emoji("neutral");
             EmoteHelper::call_function_async(
                 EmoteHelper::FunctionId::SetEventMessage,
                 BROOKESIA_DESCRIBE_TO_STR(EmoteHelper::EventMessageType::System), "[Agent] Awake"
@@ -713,11 +718,15 @@ void AI_Agents::process_emote_when_general_event_happened()
             break;
         }
         case AgentHelper::GeneralEvent::Stopped: {
+            dsh_pet_sync::set_voice_active(false);
             EmoteHelper::call_function_async(
                 EmoteHelper::FunctionId::SetEventMessage, BROOKESIA_DESCRIBE_TO_STR(EmoteHelper::EventMessageType::Idle)
             );
             break;
         }
+        case AgentHelper::GeneralEvent::Slept:
+            dsh_pet_sync::set_voice_active(false);
+            break;
         default:
             break;
         }
@@ -740,6 +749,7 @@ void AI_Agents::process_emote_when_suspend_status_changed()
         BROOKESIA_LOGI("Suspend status changed to %1%", BROOKESIA_DESCRIBE_TO_STR(is_suspended));
 
         if (is_suspended) {
+            dsh_pet_sync::set_voice_active(false);
             EmoteHelper::call_function_async(
                 EmoteHelper::FunctionId::SetEventMessage,
                 BROOKESIA_DESCRIBE_TO_STR(EmoteHelper::EventMessageType::System), "[Agent] Suspended"
@@ -777,8 +787,9 @@ void AI_Agents::process_emote_when_speaking_status_changed()
         }
 
         if (is_speaking) {
+            dsh_pet_sync::set_voice_active(true);
 #if CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS
-            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "speaking");
+            dsh_pet_sync::set_local_emoji("speaking");
 #endif
             EmoteHelper::call_function_async(
                 EmoteHelper::FunctionId::SetEventMessage,
@@ -787,7 +798,7 @@ void AI_Agents::process_emote_when_speaking_status_changed()
         } else if (!is_listening()) {
             // Only hide event message when the agent is not listening
 #if CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS
-            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "neutral");
+            dsh_pet_sync::set_local_emoji("neutral");
 #endif
             EmoteHelper::call_function_async(EmoteHelper::FunctionId::HideEventMessage);
         }
@@ -819,8 +830,9 @@ void AI_Agents::process_emote_when_listening_status_changed()
         }
 
         if (is_listening) {
+            dsh_pet_sync::set_voice_active(true);
 #if CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS
-            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "listening");
+            dsh_pet_sync::set_local_emoji("listening");
 #endif
             EmoteHelper::call_function_async(
                 EmoteHelper::FunctionId::SetEventMessage,
@@ -829,7 +841,7 @@ void AI_Agents::process_emote_when_listening_status_changed()
         } else if (!is_speaking()) {
             // Only hide event message when the agent is not speaking
 #if CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS
-            EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "thinking");
+            dsh_pet_sync::set_local_emoji("thinking");
 #endif
             EmoteHelper::call_function_async(EmoteHelper::FunctionId::HideEventMessage);
         }
@@ -916,7 +928,7 @@ void AI_Agents::process_emote_when_coze_event_happened()
         case CozeHelper::CozeEvent::InsufficientCreditsBalance: {
             auto task_func = [this]() {
                 BROOKESIA_LOG_TRACE_GUARD();
-                EmoteHelper::call_function_async(EmoteHelper::FunctionId::SetEmoji, "sad");
+                dsh_pet_sync::set_local_emoji("sad");
                 EmoteHelper::call_function_async(
                     EmoteHelper::FunctionId::SetEventMessage,
                     BROOKESIA_DESCRIBE_TO_STR(EmoteHelper::EventMessageType::System),
@@ -1116,6 +1128,7 @@ void AI_Agents::process_wifi_events()
 
         switch (wifi_event_enum) {
         case WifiHelper::GeneralEvent::Connected: {
+            dsh_pet_sync::set_network_connected(true);
             emote_message = "[WiFi] Connected";
             is_wifi_connected_ = true;
             task_func = [this]() {
@@ -1125,6 +1138,7 @@ void AI_Agents::process_wifi_events()
             break;
         }
         case WifiHelper::GeneralEvent::Disconnected: {
+            dsh_pet_sync::set_network_connected(false);
             emote_message = "[WiFi] Disconnected";
             is_wifi_connected_ = false;
             task_func = [this]() {
