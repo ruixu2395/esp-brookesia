@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Read local dsh-dafeiyu SSE snapshots and serve a bounded status API to XiaoZhi.
+"""Read local dsh-pet state snapshots and serve a bounded status API to XiaoZhi.
 
 Python 3.10+, standard library only. No model API keys, task writes or screen
 capture are used. An optional desktop Host Cookie stays on the PC.
@@ -11,6 +11,7 @@ import argparse
 import copy
 from datetime import datetime, timezone
 import hmac
+from http.client import HTTPException
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import logging
@@ -24,16 +25,17 @@ from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
 
-EVENT_PATH = '/plugins/dsh-dafeiyu/events'
-CONFIG_PATH = '/plugins/dsh-dafeiyu/config'
-MAX_EVENT_BYTES = 65536
+PLUGIN_PATH = '/dsh-pet-7340'
+STATE_PATH = PLUGIN_PATH + '/state'
+MAX_SOURCE_BYTES = 262144
 MAX_RESPONSE_BYTES = 8192
-MAX_TASKS = 6
+POLL_TIMEOUT_MS = 10000
 STATES = {
     'IDLE': '空闲', 'THINKING': '思考中', 'WORKING': '执行中',
+    'RESULT': '整理结果中',
     'WAITING': '等待确认', 'SUCCESS': '已完成', 'ERROR': '发生错误',
-    'DISCONNECTED': '已断开',
 }
+SOURCE_STATES = {state.lower(): state for state in STATES if state != 'IDLE'}
 LOG = logging.getLogger('dsh-bridge')
 
 
@@ -43,38 +45,8 @@ def text(value, limit=120):
     return ' '.join(value.split())[:limit] or None
 
 
-def progress(value):
-    if not isinstance(value, dict):
-        return None
-    completed, total = value.get('completed'), value.get('total')
-    if (type(completed) is not int or type(total) is not int
-            or not 0 <= completed <= total <= 1000000 or total == 0):
-        return None
-    result = {'completed': completed, 'total': total}
-    current = value.get('current')
-    if type(current) is int and 1 <= current <= total:
-        result['current'] = current
-    return result
-
-
-def task_record(value):
-    """Allowlist protocol fields; never forward config, balance or arbitrary JSON."""
-    state = value.get('state')
-    return {
-        'session_id': text(value.get('sessionId'), 64),
-        'state': state if isinstance(state, str) and state in STATES else 'UNKNOWN',
-        'project': text(value.get('project'), 80),
-        'stage': text(value.get('stage'), 40),
-        'task': text(value.get('task')),
-        'progress': progress(value.get('progress')),
-    }
-
-
-def event_timestamp(message):
-    value = message.get('timestamp')
-    if type(value) not in (int, float) or not 0 <= value <= 253402300799000:
-        return None
-    return value
+def is_counter(value):
+    return type(value) is int and 0 <= value <= 9223372036854775807
 
 
 class StatusStore:
@@ -83,23 +55,9 @@ class StatusStore:
         self.clock = clock
         self.connected = False
         self.current = None
-        self.sessions = {}
-        self.tasks = []
         self.last_sync = None
         self.updated_at = None
         self.connection_error = 'waiting_for_dsh'
-
-    def begin_connection(self):
-        with self.lock:
-            # The source replays independent state/task snapshots. Rebuild each
-            # connection so old sessions from an earlier host cannot leak in.
-            self.connected = True
-            self.current = None
-            self.sessions = {}
-            self.tasks = []
-            self.last_sync = None
-            self.updated_at = None
-            self.connection_error = 'waiting_for_state'
 
     def disconnect(self, reason='source_disconnected'):
         with self.lock:
@@ -107,57 +65,44 @@ class StatusStore:
             self.connection_error = reason
 
     def apply(self, message):
-        if (not isinstance(message, dict) or type(message.get('protocolVersion')) is not int
-                or message['protocolVersion'] != 1):
-            return
-        kind = message.get('kind')
-        stamp = event_timestamp(message)
-        if kind not in ('state', 'task', 'tasks', 'shutdown', 'closed', 'hello',
-                        'pulse', 'config', 'balance', 'ping', 'pong') or stamp is None:
-            return
+        """Validate the public /state contract; copy only workStatus.state/task.
+
+        A counter is a revision, not a heartbeat. Even unchanged snapshots prove
+        the source is reachable. No workStatus data means unknown, not idle.
+        """
+        if not isinstance(message, dict) or not is_counter(message.get('counter')):
+            raise ValueError('invalid source counter')
+        sections = message.get('sections')
+        leaf = sections.get('workStatus') if isinstance(sections, dict) else None
+        if (not isinstance(leaf, dict) or not is_counter(leaf.get('counter'))
+                or leaf['counter'] > message['counter'] or 'data' not in leaf):
+            raise ValueError('invalid workStatus leaf')
+        data = leaf['data']
+        record = None
+        if data is not None:
+            if (not isinstance(data, dict) or 'state' not in data or 'task' not in data
+                    or (data['state'] is not None and
+                        (not isinstance(data['state'], str) or data['state'] not in SOURCE_STATES))
+                    or (data['task'] is not None and not isinstance(data['task'], str))):
+                raise ValueError('invalid workStatus data')
+            record = {
+                'session_id': None,
+                'state': 'IDLE' if data['state'] is None else SOURCE_STATES[data['state']],
+                'project': None,
+                'stage': None,
+                'task': text(data['task']),
+                'progress': None,
+            }
+        stamp = leaf['counter']
+        updated_at = (datetime.fromtimestamp(stamp / 1000, timezone.utc).isoformat()
+                      if 0 < stamp <= 253402300799000 else None)
         with self.lock:
-            if kind in ('shutdown', 'closed'):
-                self.connected = False
-                self.connection_error = 'dsh_stopped'
-                return
-            if self.current is not None:
-                self.last_sync = self.clock()
-            if kind not in ('state', 'task', 'tasks'):
-                return
-            if kind == 'tasks':
-                values = message.get('tasks')
-                if not isinstance(values, list):
-                    return
-                self.tasks = [task_record(item) for item in values[:MAX_TASKS]
-                              if isinstance(item, dict)]
-                return
-            state = message.get('state')
-            if kind == 'state' and (not isinstance(state, str) or state not in STATES):
-                return
-            record = task_record(message)
-            session_id = record['session_id']
-            if kind == 'task' and session_id is None:
-                return
-            previous = self.sessions.get(session_id)
-            # A replayed TASK can predate the latest STATE, including a new
-            # turn in the same session. Never resurrect that old todo progress.
-            if previous and stamp < previous[0]:
-                return
-            if kind == 'task':
-                if previous:
-                    merged = dict(previous[1])
-                    for key in ('project', 'task', 'progress'):
-                        merged[key] = record[key]
-                    record = merged
-            self.sessions[session_id] = (stamp, record)
-            if len(self.sessions) > 64:
-                oldest = min(self.sessions, key=lambda key: self.sessions[key][0])
-                del self.sessions[oldest]
-            if kind == 'state' or (self.current and self.current['session_id'] == session_id):
-                self.current = record
-                self.last_sync = self.clock()
-                self.connection_error = None
-                self.updated_at = datetime.fromtimestamp(stamp / 1000, timezone.utc).isoformat()
+            self.connected = True
+            self.current = record
+            self.last_sync = self.clock()
+            self.connection_error = None if record is not None else 'waiting_for_work_status'
+            self.updated_at = updated_at
+        return message['counter']
 
     def snapshot(self):
         with self.lock:
@@ -165,7 +110,9 @@ class StatusStore:
             available = self.connected and self.current is not None and age is not None and age < 45
             result = {
                 'schema_version': 1,
-                'source': 'dsh-dafeiyu',
+                'source': 'dsh-pet',
+                'capabilities': {'work_status': True, 'current_task': True,
+                                 'project': False, 'todo_counts': False, 'task_list': False},
                 'connected': self.connected,
                 'available': available,
                 'stale': not available,
@@ -175,29 +122,16 @@ class StatusStore:
                 'current': copy.deepcopy(self.current),
                 'tasks': [],
             }
-            for item in self.tasks:
-                item = dict(item)
-                # The multi-task list omits progress and may include a new
-                # turn in an older session. Counts are current only for the
-                # selected session, whose full snapshot we actually receive.
-                if (self.current and item['session_id'] == self.current['session_id']
-                        and item['state'] == self.current['state']):
-                    item['progress'] = self.current['progress']
-                result['tasks'].append(item)
         current = result['current']
+        result['source_note'] = ('dsh-pet 发布的工作状态可能被其他客户端覆盖；'
+                                '该接口不提供项目名、待办计数或多任务列表。')
         if not available:
             result['summary'] = '暂时无法获取电脑 DSH 的实时状态；缓存信息不能作为当前状态。'
         elif current:
             parts = [f"DSH：{STATES.get(current['state'], '状态未知')}"]
-            if current['project']:
-                parts.append(f"项目：{current['project']}")
             if current['task']:
-                parts.append(f"当前待办：{current['task']}")
-            elif current['stage']:
-                parts.append(f"阶段：{current['stage']}")
-            todo = current['progress']
-            parts.append(f"待办完成 {todo['completed']}/{todo['total']}" if todo
-                         else 'DSH 未提供待办计数，无法计算完成百分比')
+                parts.append(f"当前任务：{current['task']}")
+            parts.append('dsh-pet 未提供项目名及待办计数，无法计算完成百分比')
             result['summary'] = '；'.join(parts)
         return result
 
@@ -206,38 +140,8 @@ def status_payload(store):
     result = store.snapshot()
     payload = json.dumps(result, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
     if len(payload) > MAX_RESPONSE_BYTES:
-        result['tasks'] = []
-        result['tasks_truncated'] = True
-        payload = json.dumps(result, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
-    if len(payload) > MAX_RESPONSE_BYTES:
         raise ValueError('status payload exceeds firmware limit')
     return payload
-
-
-def iter_sse(stream):
-    chunks, size = [], 0
-    while True:
-        line = stream.readline(MAX_EVENT_BYTES + 1)
-        if not line:
-            return
-        if len(line) > MAX_EVENT_BYTES:
-            raise ValueError('oversized source event line')
-        line = line.decode('utf-8').rstrip('\r\n')
-        if not line:
-            if chunks:
-                try:
-                    message = json.loads('\n'.join(chunks))
-                except (ValueError, RecursionError):
-                    message = None
-                if isinstance(message, dict):
-                    yield message
-            chunks, size = [], 0
-        elif line.startswith('data:'):
-            value = line[5:].removeprefix(' ')
-            size += len(value.encode('utf-8'))
-            if size > MAX_EVENT_BYTES:
-                raise ValueError('oversized source event')
-            chunks.append(value)
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -248,9 +152,10 @@ class NoRedirect(HTTPRedirectHandler):
 def source_endpoint(base_url):
     url = urlsplit(base_url)
     if (url.scheme != 'http' or url.hostname not in ('127.0.0.1', 'localhost', '::1')
-            or url.username or url.password or url.query or url.fragment or url.path not in ('', '/')):
-        raise ValueError('DSH source must be a loopback HTTP base URL, e.g. http://127.0.0.1:3080')
-    return base_url.rstrip('/') + EVENT_PATH
+            or url.username or url.password or url.query or url.fragment
+            or url.path.rstrip('/') not in ('', PLUGIN_PATH) or url.port == 0):
+        raise ValueError('DSH source must be a loopback HTTP Host or dsh-pet base URL')
+    return f'{url.scheme}://{url.netloc}{STATE_PATH}'
 
 
 def read_cookie(path):
@@ -264,47 +169,34 @@ def read_cookie(path):
 
 def read_source(endpoint, store, stop, once=False, cookie_file=None):
     opener = build_opener(ProxyHandler({}), NoRedirect())
+    counter = None
     while not stop.is_set():
         try:
             headers = {}
             cookie = read_cookie(cookie_file)
             if cookie:
                 headers['Cookie'] = cookie
-            origin = urlsplit(endpoint)
-            config_url = f'{origin.scheme}://{origin.netloc}{CONFIG_PATH}'
-            config_request = Request(config_url, headers={**headers, 'Accept': 'application/json'})
-            with opener.open(config_request, timeout=5) as response:
-                body = response.read(8193)
-                if response.headers.get_content_type() != 'application/json' or len(body) > 8192:
-                    raise ValueError('invalid plugin configuration response')
-                config = json.loads(body)
-                if not isinstance(config, dict) or type(config.get('enabled')) is not bool:
-                    raise ValueError('invalid plugin configuration schema')
-            if not config['enabled']:
-                store.disconnect('source_plugin_disabled')
-                if once or stop.wait(1):
-                    return
-                continue
-            request = Request(endpoint, headers={**headers, 'Accept': 'text/event-stream'})
-            with opener.open(request, timeout=20) as response:
-                if response.headers.get_content_type() != 'text/event-stream':
-                    raise ValueError('source is not an SSE endpoint')
-                store.begin_connection()
-                for message in iter_sse(response):
-                    if stop.is_set():
-                        return
-                    store.apply(message)
-                    if once and store.snapshot()['available']:
-                        return
-            store.disconnect()
+            url = endpoint if counter is None else f'{endpoint}?since={counter}&timeout={POLL_TIMEOUT_MS}'
+            request = Request(url, headers={**headers, 'Accept': 'application/json'})
+            with opener.open(request, timeout=15) as response:
+                body = response.read(MAX_SOURCE_BYTES + 1)
+                if response.headers.get_content_type() != 'application/json' or len(body) > MAX_SOURCE_BYTES:
+                    raise ValueError('invalid or oversized dsh-pet state response')
+                counter = store.apply(json.loads(body))
+            if once:
+                return
+            # Bound request rate if other pet leaves change continuously or a
+            # source ignores long polling. Every reply is still a full snapshot.
+            if stop.wait(0.1):
+                return
+            continue
         except HTTPError as error:
             store.disconnect(f'source_http_{error.code}')
-        except (OSError, URLError, ValueError, RecursionError):
+        except (OSError, URLError, HTTPException, ValueError, RecursionError):
             store.disconnect('source_unreachable_or_invalid')
         if once:
             return
-        # The upstream SSE endpoint has no heartbeat. Reconnect after the read
-        # timeout to revalidate the host and obtain a fresh snapshot even idle.
+        counter = None
         if stop.wait(1):
             return
 
@@ -356,7 +248,8 @@ def load_token(path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--source-url', required=True, help='Actual DSH desktop host loopback HTTP base URL')
+    parser.add_argument('--source-url', required=True,
+                        help='Actual DSH Host loopback HTTP URL, optionally ending in /dsh-pet-7340')
     parser.add_argument('--bind', default='127.0.0.1', help='Use the PC LAN IP to allow the ESP32 to connect')
     parser.add_argument('--source-cookie-file', type=Path,
                         help='Optional local file containing the desktop Host Cookie header value')

@@ -103,8 +103,9 @@ menu "Example Configuration"
         depends on EXAMPLE_AGENTS_ENABLE_XIAOZHI
         default n
         help
-            Query the PC bridge for DSH task status, project and todo progress.
-            Run tools/dsh_bridge.py on the same PC as the DSH desktop host.
+            Query the PC bridge for dsh-pet work status and current task text.
+            Install dsh-pet in DSH and run tools/dsh_bridge.py on the same PC.
+            The plugin API does not provide project names or todo counts.
 
     if EXAMPLE_DSH_BRIDGE_ENABLE
         config EXAMPLE_DSH_BRIDGE_URL

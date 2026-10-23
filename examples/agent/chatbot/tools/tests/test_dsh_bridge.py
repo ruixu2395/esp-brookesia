@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Network and data contract tests for the DSH-to-XiaoZhi bridge."""
+"""Public dsh-pet contract and loopback HTTP tests for the XiaoZhi bridge."""
 
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-import io
 import json
 from pathlib import Path
 import sys
@@ -17,8 +16,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import dsh_bridge as bridge
 
 
-def event(kind='state', timestamp=1000, **fields):
-    return {'protocolVersion': 1, 'kind': kind, 'timestamp': timestamp, **fields}
+def snapshot(state='working', task='验证音频', counter=1000, leaf_counter=None):
+    return {
+        'counter': counter,
+        'sections': {'workStatus': {
+            'counter': counter if leaf_counter is None else leaf_counter,
+            'data': {'state': state, 'task': task},
+        }},
+        'pets': {},
+    }
 
 
 @contextmanager
@@ -33,206 +39,275 @@ def serving(server):
         worker.join(timeout=2)
 
 
+@contextmanager
+def source_server(respond):
+    class Source(BaseHTTPRequestHandler):
+        def do_GET(self):
+            respond(self)
+
+        def log_message(self, *args):
+            pass
+
+    with serving(ThreadingHTTPServer(('127.0.0.1', 0), Source)) as address:
+        yield address
+
+
+def reply(handler, value, code=200, content_type='application/json'):
+    payload = value if isinstance(value, bytes) else json.dumps(value).encode()
+    handler.send_response(code)
+    handler.send_header('Content-Type', content_type)
+    handler.send_header('Content-Length', str(len(payload)))
+    handler.end_headers()
+    handler.wfile.write(payload)
+
+
 class StatusTest(unittest.TestCase):
     def setUp(self):
         self.now = 10
         self.store = bridge.StatusStore(clock=lambda: self.now)
-        self.store.begin_connection()
 
-    def test_real_protocol_progress_and_unknown_progress(self):
-        self.store.apply(event(sessionId='a', state='WORKING', project='机器人'))
-        self.store.apply(event('task', timestamp=1001, sessionId='a', task='验证驱动',
-                               project='机器人', progress={'completed': 2, 'total': 5, 'current': 3}))
+    def test_public_states_including_result_and_idle(self):
+        for source, expected in ((None, 'IDLE'), ('thinking', 'THINKING'),
+                                 ('working', 'WORKING'), ('result', 'RESULT'),
+                                 ('waiting', 'WAITING'), ('success', 'SUCCESS'), ('error', 'ERROR')):
+            with self.subTest(state=source):
+                self.store.apply(snapshot(source))
+                result = self.store.snapshot()
+                self.assertTrue(result['available'])
+                self.assertEqual(result['source'], 'dsh-pet')
+                self.assertEqual(result['current']['state'], expected)
+                self.assertIn(bridge.STATES[expected], result['summary'])
+
+    def test_unsupported_project_counts_and_task_list_are_explicit(self):
+        value = snapshot()
+        value['sections']['workStatus']['data'].update(
+            project='not-in-public-contract', progress={'completed': 2, 'total': 4})
+        value['tasks'] = [{'project': 'not-in-public-contract'}]
+        self.store.apply(value)
         result = self.store.snapshot()
-        self.assertTrue(result['available'])
-        self.assertIn('待办完成 2/5', result['summary'])
-        self.assertEqual(result['current']['project'], '机器人')
-        self.store.apply(event(timestamp=1002, sessionId='a', state='THINKING'))
-        self.assertIsNone(self.store.snapshot()['current']['progress'])
-        self.assertIn('无法计算', self.store.snapshot()['summary'])
+        for field in ('project', 'progress', 'session_id', 'stage'):
+            self.assertIsNone(result['current'][field])
+        self.assertEqual(result['tasks'], [])
+        for field in ('project', 'todo_counts', 'task_list'):
+            self.assertFalse(result['capabilities'][field])
+        self.assertIn('无法计算', result['summary'])
+        self.assertNotIn('not-in-public-contract', bridge.status_payload(self.store).decode())
 
-    def test_snapshot_replay_never_restores_old_session_todo(self):
-        self.store.apply(event(timestamp=2000, sessionId='new', state='WORKING', project='新项目'))
-        self.store.apply(event('task', timestamp=1000, sessionId='old', task='旧待办',
-                               progress={'completed': 8, 'total': 9}))
-        self.assertEqual(self.store.snapshot()['current']['session_id'], 'new')
-        self.assertIsNone(self.store.snapshot()['current']['task'])
-        self.store.apply(event('task', timestamp=1999, sessionId='new', task='上一轮待办',
-                               progress={'completed': 3, 'total': 4}))
-        self.assertIsNone(self.store.snapshot()['current']['progress'])
-
-    def test_multiple_sessions_and_list_clear(self):
-        self.store.apply(event(sessionId='a', state='WORKING', project='项目 A',
-                               progress={'completed': 1, 'total': 3}))
-        self.store.apply(event(timestamp=1001, sessionId='b', state='THINKING', project='项目 B'))
-        self.store.apply(event('tasks', timestamp=1002, tasks=[
-            {'sessionId': 'a', 'state': 'WORKING', 'project': '项目 A'},
-            {'sessionId': 'b', 'state': 'THINKING', 'project': '项目 B'},
-        ]))
-        result = self.store.snapshot()
-        # Counts cached from a different selected session may be from an old
-        # turn. The source's task list itself does not supply those counts.
-        self.assertIsNone(result['tasks'][0]['progress'])
-        self.assertIsNone(result['tasks'][1]['progress'])
-        self.store.apply(event('tasks', timestamp=1003, tasks=[]))
-        self.assertEqual(self.store.snapshot()['tasks'], [])
-
-    def test_disconnect_stale_data_and_reconnect(self):
-        self.assertFalse(self.store.snapshot()['available'])
-        self.store.apply(event(sessionId='a', state='WORKING'))
+    def test_unchanged_counter_is_fresh_while_source_is_reachable(self):
+        value = snapshot()
+        self.store.apply(value)
+        updated_at = self.store.snapshot()['updated_at']
         self.now += 46
         self.assertFalse(self.store.snapshot()['available'])
-        self.store.apply(event('pulse', timestamp=2000, state='WORKING'))
-        self.assertTrue(self.store.snapshot()['available'])
+        self.store.apply(value)
+        result = self.store.snapshot()
+        self.assertTrue(result['available'])
+        self.assertEqual(result['sync_age_seconds'], 0)
+        self.assertEqual(result['updated_at'], updated_at)
+
+    def test_never_written_work_status_is_unknown_not_idle_and_clears_cache(self):
+        self.store.apply(snapshot())
+        self.store.apply({'counter': 10, 'sections': {'workStatus': {'counter': 0, 'data': None}}})
+        result = self.store.snapshot()
+        self.assertTrue(result['connected'])
+        self.assertFalse(result['available'])
+        self.assertIsNone(result['current'])
+        self.assertIsNone(result['updated_at'])
+        self.assertEqual(result['connection_error'], 'waiting_for_work_status')
+
+    def test_disconnect_and_new_snapshot_replace_old_task(self):
+        self.store.apply(snapshot(task='旧任务'))
         self.store.disconnect('source_http_404')
         result = self.store.snapshot()
         self.assertFalse(result['available'])
         self.assertTrue(result['stale'])
         self.assertIn('不能作为当前状态', result['summary'])
-        self.store.begin_connection()
-        self.assertIsNone(self.store.snapshot()['current'])
+        # A restarted source's full snapshot is authoritative even if its
+        # revision is lower; never merge text from the previous instance.
+        self.store.apply(snapshot(state=None, task=None, counter=1))
+        result = self.store.snapshot()
+        self.assertTrue(result['available'])
+        self.assertIsNone(result['current']['task'])
+        self.assertIsNone(result['connection_error'])
+
+    def test_malformed_contract_is_rejected_without_refreshing_cache(self):
+        malformed = [None, [], {}, {'counter': True}, snapshot(state='unknown'),
+                     snapshot(state=[]), snapshot(task=3), snapshot(counter=-1),
+                     snapshot(counter=1, leaf_counter=2), snapshot(counter=2**63),
+                     {'counter': 1, 'sections': []},
+                     {'counter': 1, 'sections': {'workStatus': {'counter': 1}}},
+                     {'counter': 1, 'sections': {'workStatus': {'counter': 1, 'data': {}}}}]
+        for value in malformed:
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                self.store.apply(value)
         self.assertFalse(self.store.snapshot()['available'])
 
-    def test_fields_are_allowlisted_bounded_and_malformed_events_are_ignored(self):
-        for message in (None, [], {}, event(state={}), event(state=[]),
-                        event(protocolVersion=True, state='WORKING'), event(timestamp=float('nan'))):
-            self.store.apply(message)
-        self.assertFalse(self.store.snapshot()['available'])
-        self.store.apply(event(sessionId='a', state='WORKING', project='项' * 3000,
-                               task='任' * 3000, token='never-export', config={'secret': 'never-export'},
-                               progress={'completed': True, 'total': 5}))
-        self.store.apply(event('tasks', tasks=[
-            {'sessionId': str(i), 'state': 'WORKING', 'task': '任' * 3000, 'project': '项' * 3000}
-            for i in range(100)
-        ]))
+    def test_allowlist_bounds_and_work_timestamp_not_other_pet_timestamp(self):
+        value = snapshot(task='任' * 3000, counter=9000, leaf_counter=1000)
+        value['sections']['balance'] = {'data': {'secret': 'never-export'}}
+        value['sections']['config'] = {'data': {'token': 'never-export'}}
+        value['pets'] = {'main': {'say': {'data': {'text': 'never-export'}}}}
+        self.store.apply(value)
         payload = bridge.status_payload(self.store)
+        result = json.loads(payload)
         self.assertLessEqual(len(payload), bridge.MAX_RESPONSE_BYTES)
         self.assertNotIn('never-export', payload.decode())
-        self.assertLessEqual(len(json.loads(payload)['tasks']), bridge.MAX_TASKS)
-        self.assertIsNone(json.loads(payload)['current']['progress'])
+        self.assertEqual(len(result['current']['task']), 120)
+        self.assertEqual(result['updated_at'], '1970-01-01T00:00:01+00:00')
+        self.store.apply(snapshot(counter=2**63 - 1))
+        self.assertIsNone(self.store.snapshot()['updated_at'])
 
 
 class WireTest(unittest.TestCase):
-    def test_sse_comments_multiline_invalid_and_size_limit(self):
-        wire = (b': comment\r\nretry: 2000\r\n\r\ndata: invalid\n\n'
-                b'data: {"kind": "state",\ndata: "state": "WORKING"}\n\n')
-        self.assertEqual(list(bridge.iter_sse(io.BytesIO(wire))), [{'kind': 'state', 'state': 'WORKING'}])
-        with self.assertRaises(ValueError):
-            list(bridge.iter_sse(io.BytesIO(b'data: ' + b'x' * bridge.MAX_EVENT_BYTES + b'\n\n')))
-
     def test_real_http_source_to_authenticated_device_query(self):
-        snapshot = event(sessionId='desktop-1', state='WORKING', project='esp-brookesia',
-                         task='验证音频', progress={'completed': 2, 'total': 4})
+        paths = []
 
-        class Source(BaseHTTPRequestHandler):
-            def do_GET(self):
-                self.send_response(200)
-                if self.path == bridge.CONFIG_PATH:
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(b'{"enabled":true}')
-                    return
-                self.send_header('Content-Type', 'text/event-stream')
-                self.end_headers()
-                self.wfile.write(('data: ' + json.dumps(snapshot) + '\n\n').encode())
-
-            def log_message(self, *args):
-                pass
+        def respond(handler):
+            paths.append(handler.path)
+            reply(handler, snapshot())
 
         store = bridge.StatusStore()
         token = 'test-only-' + 'a' * 32
-        with serving(ThreadingHTTPServer(('127.0.0.1', 0), Source)) as source:
+        with source_server(respond) as source:
             bridge.read_source(bridge.source_endpoint(source), store, threading.Event(), once=True)
+        self.assertEqual(paths, [bridge.STATE_PATH])
         with serving(bridge.make_server(('127.0.0.1', 0), store, token)) as address:
-            with self.assertRaises(HTTPError) as failure:
-                urlopen(address + '/v1/status', timeout=2)
-            self.assertEqual(failure.exception.code, 401)
+            for supplied in ('', 'Bearer wrong-token'):
+                with self.assertRaises(HTTPError) as failure:
+                    urlopen(Request(address + '/v1/status', headers={'Authorization': supplied}), timeout=2)
+                self.assertEqual(failure.exception.code, 401)
             request = Request(address + '/v1/status', headers={'Authorization': 'Bearer ' + token})
             with urlopen(request, timeout=2) as response:
                 result = json.load(response)
             self.assertTrue(result['available'])
-            self.assertEqual(result['current']['project'], 'esp-brookesia')
-            self.assertEqual(result['current']['progress'], {'completed': 2, 'total': 4})
+            self.assertEqual(result['current']['task'], '验证音频')
+            self.assertIsNone(result['current']['progress'])
             for method, path, status in (('POST', '/v1/status', 405), ('GET', '/other', 404)):
                 with self.assertRaises(HTTPError) as failure:
                     urlopen(Request(address + path, method=method,
                                     headers={'Authorization': 'Bearer ' + token}), timeout=2)
                 self.assertEqual(failure.exception.code, status)
 
-    def test_wrong_source_http_and_html_are_reported(self):
-        class Source(BaseHTTPRequestHandler):
-            def do_GET(self):
-                if self.path == bridge.CONFIG_PATH:
-                    self.send_response(200)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(b'{"enabled":true}')
-                    return
-                self.send_response(404 if self.path.startswith('/missing') else 200)
-                self.send_header('Content-Type', 'text/html')
-                self.end_headers()
+    def test_long_poll_uses_top_counter_and_updates_after_unchanged_reply(self):
+        paths = []
+        stop = threading.Event()
 
-            def log_message(self, *args):
-                pass
+        def respond(handler):
+            paths.append(handler.path)
+            last = len(paths) == 3
+            reply(handler, snapshot('result' if last else 'working', counter=1200 if last else 1000,
+                                    leaf_counter=1100 if last else 800))
+            if last:
+                stop.set()
 
         store = bridge.StatusStore()
-        with serving(ThreadingHTTPServer(('127.0.0.1', 0), Source)) as source:
-            bridge.read_source(source + '/missing', store, threading.Event(), once=True)
-            self.assertEqual(store.snapshot()['connection_error'], 'source_http_404')
-            bridge.read_source(source + '/html', store, threading.Event(), once=True)
-            self.assertFalse(store.snapshot()['available'])
+        with source_server(respond) as source:
+            bridge.read_source(bridge.source_endpoint(source), store, stop)
+        self.assertEqual(paths, [bridge.STATE_PATH] +
+                         [bridge.STATE_PATH + '?since=1000&timeout=10000'] * 2)
+        self.assertEqual(store.snapshot()['current']['state'], 'RESULT')
 
-    def test_desktop_host_cookie_and_disabled_plugin(self):
-        enabled = [True]
+    def test_failure_retries_with_full_snapshot(self):
         paths = []
+        stop = threading.Event()
 
-        class Desktop(BaseHTTPRequestHandler):
-            def do_GET(self):
-                paths.append(self.path)
-                if self.headers.get('Cookie') != 'host-session=test-only':
-                    self.send_response(401)
-                    self.end_headers()
-                    return
-                self.send_response(200)
-                self.send_header('Content-Type', 'application/json' if self.path == bridge.CONFIG_PATH
-                                 else 'text/event-stream')
-                self.end_headers()
-                if self.path == bridge.CONFIG_PATH:
-                    self.wfile.write(json.dumps({'enabled': enabled[0]}).encode())
-                else:
-                    self.wfile.write(('data: ' + json.dumps(event(state='IDLE')) + '\n\n').encode())
+        def respond(handler):
+            paths.append(handler.path)
+            if len(paths) == 2:
+                reply(handler, {}, code=503)
+                return
+            reply(handler, snapshot(counter=len(paths)))
+            if len(paths) == 3:
+                stop.set()
 
-            def log_message(self, *args):
-                pass
+        store = bridge.StatusStore()
+        with source_server(respond) as source:
+            bridge.read_source(bridge.source_endpoint(source), store, stop)
+        self.assertEqual(paths, [bridge.STATE_PATH, bridge.STATE_PATH + '?since=1&timeout=10000',
+                                bridge.STATE_PATH])
+        self.assertTrue(store.snapshot()['available'])
+
+    def test_http_html_invalid_json_and_oversized_source_are_unavailable(self):
+        cases = [(b'{}', 404, 'application/json', 'source_http_404'),
+                 (b'<html/>', 200, 'text/html', 'source_unreachable_or_invalid'),
+                 (b'{invalid', 200, 'application/json', 'source_unreachable_or_invalid'),
+                 (b'{}', 200, 'application/json', 'source_unreachable_or_invalid'),
+                 (b'x' * (bridge.MAX_SOURCE_BYTES + 1), 200, 'application/json',
+                  'source_unreachable_or_invalid')]
+        for body, code, content_type, expected in cases:
+            with self.subTest(code=code, size=len(body)):
+                store = bridge.StatusStore()
+                with source_server(lambda h: reply(h, body, code, content_type)) as source:
+                    bridge.read_source(bridge.source_endpoint(source), store, threading.Event(), once=True)
+                self.assertFalse(store.snapshot()['available'])
+                self.assertEqual(store.snapshot()['connection_error'], expected)
+
+    def test_optional_host_cookie_stays_on_pc(self):
+        def respond(handler):
+            if handler.headers.get('Cookie') != 'host-session=test-only':
+                reply(handler, {}, code=401)
+            else:
+                reply(handler, snapshot())
 
         store = bridge.StatusStore()
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'host-cookie.txt'
             path.write_text('host-session=test-only\n', encoding='ascii')
-            with serving(ThreadingHTTPServer(('127.0.0.1', 0), Desktop)) as address:
-                endpoint = bridge.source_endpoint(address)
+            with source_server(respond) as source:
+                endpoint = bridge.source_endpoint(source)
                 bridge.read_source(endpoint, store, threading.Event(), once=True)
                 self.assertEqual(store.snapshot()['connection_error'], 'source_http_401')
                 bridge.read_source(endpoint, store, threading.Event(), once=True, cookie_file=path)
                 self.assertTrue(store.snapshot()['available'])
                 self.assertNotIn('host-session', bridge.status_payload(store).decode())
-                enabled[0] = False
-                paths.clear()
-                bridge.read_source(endpoint, store, threading.Event(), once=True, cookie_file=path)
-                self.assertFalse(store.snapshot()['available'])
-                self.assertEqual(store.snapshot()['connection_error'], 'source_plugin_disabled')
-                self.assertEqual(paths, [bridge.CONFIG_PATH])
             path.write_text('cookie=abc\nInjected: header', encoding='ascii')
             with self.assertRaises(ValueError):
                 bridge.read_cookie(path)
 
-    def test_source_must_be_local_and_token_persists(self):
+    def test_interrupted_chunked_response_is_unavailable(self):
+        def respond(handler):
+            handler.send_response(200)
+            handler.send_header('Content-Type', 'application/json')
+            handler.send_header('Transfer-Encoding', 'chunked')
+            handler.end_headers()
+            handler.wfile.write(b'20\r\n{')
+            handler.close_connection = True
+
+        store = bridge.StatusStore()
+        store.apply(snapshot())
+        with source_server(respond) as source:
+            bridge.read_source(bridge.source_endpoint(source), store, threading.Event(), once=True)
+        self.assertFalse(store.snapshot()['available'])
+        self.assertEqual(store.snapshot()['connection_error'], 'source_unreachable_or_invalid')
+
+    def test_redirect_is_rejected_without_forwarding_credentials(self):
+        paths = []
+
+        def respond(handler):
+            paths.append(handler.path)
+            handler.send_response(302)
+            handler.send_header('Location', '/unexpected')
+            handler.send_header('Content-Length', '0')
+            handler.end_headers()
+
+        store = bridge.StatusStore()
+        with source_server(respond) as source:
+            bridge.read_source(bridge.source_endpoint(source), store, threading.Event(), once=True)
+        self.assertEqual(paths, [bridge.STATE_PATH])
+        self.assertEqual(store.snapshot()['connection_error'], 'source_http_302')
+
+    def test_source_urls_and_token_persistence(self):
         for url in ('https://example.com', 'http://192.168.1.2:3080',
-                    'http://127.0.0.1@evil.example', 'http://localhost:3080/?x=1'):
-            with self.assertRaises(ValueError):
+                    'http://127.0.0.1@evil.example', 'http://localhost:3080/?x=1',
+                    'http://localhost:3080/plugins/dsh-dafeiyu', 'http://localhost:99999',
+                    'http://localhost:0', 'http://localhost:abc'):
+            with self.subTest(url=url), self.assertRaises(ValueError):
                 bridge.source_endpoint(url)
-        self.assertEqual(bridge.source_endpoint('http://127.0.0.1:3080/'),
-                         'http://127.0.0.1:3080/plugins/dsh-dafeiyu/events')
+        for suffix in ('', '/', bridge.PLUGIN_PATH, bridge.PLUGIN_PATH + '/'):
+            self.assertEqual(bridge.source_endpoint('http://127.0.0.1:3080' + suffix),
+                             'http://127.0.0.1:3080/dsh-pet-7340/state')
+        self.assertEqual(bridge.source_endpoint('http://[::1]:3080'),
+                         'http://[::1]:3080/dsh-pet-7340/state')
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'token.txt'
             token = bridge.load_token(path)
