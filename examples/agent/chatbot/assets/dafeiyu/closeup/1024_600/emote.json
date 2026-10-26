@@ -304,5 +304,23 @@
     "src": "view_zoom.eaf",
     "loop": false,
     "fps": 15
+  },
+  {
+    "emote": "face_idle_smile",
+    "src": "face_success.eaf",
+    "loop": true,
+    "fps": 6
+  },
+  {
+    "emote": "face_idle_curious",
+    "src": "face_thinking.eaf",
+    "loop": true,
+    "fps": 6
+  },
+  {
+    "emote": "face_idle_drowsy",
+    "src": "face_idle_yawn.eaf",
+    "loop": true,
+    "fps": 6
   }
 ]

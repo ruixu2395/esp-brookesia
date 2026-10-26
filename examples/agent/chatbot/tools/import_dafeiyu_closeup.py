@@ -24,6 +24,8 @@ FACE_CENTERS = {
 }
 FACE_HEIGHT = 90 / 344
 ANIMATION_BUDGET = 1700 * 1024
+# Reuse the expression payloads at a gentler cadence for autonomous idle gestures.
+IDLE_FACE_ALIASES = {"idle_smile": "success", "idle_curious": "thinking", "idle_drowsy": "idle_yawn"}
 # Pinned blink frames from the same upstream commit as the original bundle.
 BLINK_SOURCES = {
     "idle/idle_029.webp": "1727cba84693ede7dee199d277669545626c0b7841122a8a826e73abdda53b2f",
@@ -159,6 +161,8 @@ def build(source_dir, assets_dir, enhanced=None, resolution_filter=None):
                    for alias, clip in ALIASES.items()]
         aliases += [{"emote": f"face_{alias}", "src": f"face_{clip}.eaf", "loop": True, "fps": 12}
                     for alias, clip in ALIASES.items()]
+        aliases += [{"emote": f"face_{alias}", "src": f"face_{clip}.eaf", "loop": True, "fps": 6}
+                    for alias, clip in IDLE_FACE_ALIASES.items()]
         aliases += [{"emote": "view_zoom", "src": "view_zoom.eaf", "loop": False, "fps": VIEW_FPS}]
         write_json(directory / "emote.json", aliases)
         manifest["profiles"][resolution] = {

@@ -89,6 +89,15 @@ class CloseUpAssetsTest(unittest.TestCase):
                     self.assertIn("face_" + alias["emote"], by_name)
                 self.assertEqual(by_name["view_zoom"]["fps"], 15)
                 self.assertFalse(by_name["view_zoom"]["loop"])
+                # Idle performances reuse the restored expression files at a
+                # gentler rate; real conversation expressions retain their rate.
+                for name, original in (("idle_smile", "happy"), ("idle_curious", "thinking"),
+                                       ("idle_drowsy", "sleepy")):
+                    idle = by_name["face_" + name]
+                    self.assertEqual(idle["src"], by_name["face_" + original]["src"])
+                    self.assertEqual(idle["fps"], 6)
+                    self.assertEqual(by_name["face_" + original]["fps"], 12)
+                    self.assertTrue(idle["loop"])
                 files = packer.build_files(component, ASSETS, resolution, closeup=True)
                 self.assertLess(len(packer.pack_image(files, 32)), 3072000)
                 self.assertIn("face_idle.eaf", files)
