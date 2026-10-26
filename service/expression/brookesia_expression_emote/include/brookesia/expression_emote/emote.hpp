@@ -109,6 +109,7 @@ private:
     std::expected<void, std::string> function_set_config(const boost::json::object &config);
     std::expected<void, std::string> function_load_assets_source(const boost::json::object &source);
     std::expected<void, std::string> function_set_emoji(const std::string &emoji);
+    std::expected<void, std::string> function_set_emoji_segment(const std::string &emoji, double first, double last);
     std::expected<void, std::string> function_hide_emoji();
     std::expected<void, std::string> function_set_animation(const std::string &animation);
     std::expected<void, std::string> function_insert_animation(const std::string &animation, double duration_ms);
@@ -147,6 +148,10 @@ private:
             BROOKESIA_SERVICE_HELPER_FUNC_HANDLER_1(
                 Helper, Helper::FunctionId::SetEmoji, std::string,
                 function_set_emoji(PARAM)
+            ),
+            BROOKESIA_SERVICE_HELPER_FUNC_HANDLER_3(
+                Helper, Helper::FunctionId::SetEmojiSegment, std::string, double, double,
+                function_set_emoji_segment(PARAM1, PARAM2, PARAM3)
             ),
             BROOKESIA_SERVICE_HELPER_FUNC_HANDLER_0(
                 Helper, Helper::FunctionId::HideEmoji,

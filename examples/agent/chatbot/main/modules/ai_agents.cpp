@@ -28,6 +28,7 @@
 #include "ai_agents.hpp"
 #include "dsh_bridge.hpp"
 #include "dsh_pet_sync.hpp"
+#include "character_view.hpp"
 
 using namespace esp_brookesia;
 
@@ -305,6 +306,9 @@ void AI_Agents::init_xiaozhi()
 
     if (!dsh_bridge::register_mcp_tool()) {
         BROOKESIA_LOGW("DSH status MCP tool is unavailable; check the DSH status configuration");
+    }
+    if (!character_view::register_mcp_tools()) {
+        BROOKESIA_LOGW("Dafeiyu close-up MCP tools are unavailable");
     }
 
     // Subscribe to activation code received event
@@ -896,6 +900,8 @@ void AI_Agents::process_emote_when_user_speaking_text_got()
             return;
         }
 
+        character_view::handle_voice_command(text);
+
         EmoteHelper::call_function_async(
             EmoteHelper::FunctionId::SetEventMessage,
             BROOKESIA_DESCRIBE_TO_STR(EmoteHelper::EventMessageType::User), text
@@ -1011,9 +1017,7 @@ void AI_Agents::process_emote_when_emote_got()
             emote = "winking";
         }
 
-        EmoteHelper::call_function_async(
-            EmoteHelper::FunctionId::InsertAnimation, emote, emote_animation_duration_ms_
-        );
+        character_view::insert_animation(emote, emote_animation_duration_ms_);
     };
     auto connection = AgentHelper::subscribe_event(AgentHelper::EventId::EmoteGot, slot);
     if (connection.connected()) {

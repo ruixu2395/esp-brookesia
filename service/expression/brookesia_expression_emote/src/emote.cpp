@@ -5,6 +5,7 @@
  */
 #include <algorithm>
 #include <cstdint>
+#include <cmath>
 #include <expected>
 #include <span>
 #include <string>
@@ -247,6 +248,33 @@ std::expected<void, std::string> Emote::function_set_emoji(const std::string &em
         return std::unexpected("Failed to show emoji: " + BROOKESIA_DESCRIBE_TO_STR(emoji));
     }
 
+    return {};
+}
+
+std::expected<void, std::string> Emote::function_set_emoji_segment(const std::string &emoji, double first, double last)
+{
+    if (!is_running() || !native_handle_) return std::unexpected("Emote is not started");
+    if (!std::isfinite(first) || !std::isfinite(last) || first < 0 || last < first || last > 65534 ||
+            std::floor(first) != first || std::floor(last) != last) {
+        return std::unexpected("Invalid inclusive emoji frame range");
+    }
+    auto native = get_native_handle(native_handle_);
+    // The native graphics lock is recursive. Keep source selection and segment
+    // selection atomic, so a reverse move cannot briefly show frame zero.
+    gfx_emote_lock(native->gfx_handle);
+    lib_utils::FunctionGuard unlock([&]() { gfx_emote_unlock(native->gfx_handle); });
+    emoji_data_t *asset = nullptr;
+    if (emote_get_emoji_data_by_name(native, emoji.c_str(), &asset) != ESP_OK || !asset) {
+        return std::unexpected("Emoji asset was not found: " + emoji);
+    }
+    auto result = function_set_emoji(emoji);
+    if (!result) return result;
+    auto obj = native->def_objects[EMOTE_DEF_OBJ_ANIM_EYE].obj;
+    if (!obj || gfx_anim_set_segment(obj, static_cast<uint32_t>(first), static_cast<uint32_t>(last),
+                                    asset->fps > 0 ? asset->fps : 15, false) != ESP_OK ||
+            gfx_anim_start(obj) != ESP_OK) {
+        return std::unexpected("Could not select emoji frame range");
+    }
     return {};
 }
 

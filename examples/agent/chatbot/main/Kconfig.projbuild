@@ -7,6 +7,17 @@ menu "Example Configuration"
             character from QCYTSN/dsh-dafeiyu. Includes local EAF animations
             for the supported display resolutions. Disable to use stock faces.
 
+    config EXAMPLE_DAFEIYU_CLOSEUP_ENABLE
+        bool "Enable Dafeiyu voice-controlled close-up view"
+        depends on EXAMPLE_USE_DAFEIYU_EXPRESSIONS
+        default y
+        help
+            Say "进入贴脸模式" to play a gradual camera move into a face
+            close-up, or "退出贴脸模式" to return to a full-body view.
+            Uses an alternate, shorter set of full/face animation loops to
+            keep the existing 3000 KiB anim_icon partition size unchanged.
+            Rebuild and flash both the firmware and the animation partition.
+
     menuconfig EXAMPLE_AGENTS_ENABLE_COZE
         bool "Enable Coze agent"
         select BROOKESIA_AGENT_COZE_ENABLE_AUTO_REGISTER

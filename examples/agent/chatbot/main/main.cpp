@@ -16,6 +16,7 @@
 #include "modules/profiler.hpp"
 #include "modules/display/display.hpp"
 #include "modules/dsh_pet_sync.hpp"
+#include "modules/character_view.hpp"
 
 using namespace esp_brookesia;
 
@@ -90,6 +91,9 @@ extern "C" void app_main(void)
             .task_scheduler = backend_scheduler,
         });
 
+        if (!character_view::start()) {
+            BROOKESIA_LOGW("Could not start the Dafeiyu close-up worker");
+        }
         if (!dsh_pet_sync::start()) {
             BROOKESIA_LOGW("DSH direct push receiver is unavailable; check its token configuration");
         }

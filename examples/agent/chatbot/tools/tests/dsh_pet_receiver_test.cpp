@@ -79,7 +79,7 @@ int main()
     dsh_pet_sync::set_voice_active(true);
     assert(dsh_pet_sync::status().at("voice_active").as_bool());
     dsh_pet_sync::set_local_emoji("listening");
-    assert(Emote::last_emoji == "listening");
+    assert(esp_brookesia::service::helper::ExpressionEmote::last_emoji == "listening");
     test_time_us += 15000000;
     assert(!dsh_pet_sync::status().at("available").as_bool());
     assert(dsh_pet_sync::status().at("current").is_null());

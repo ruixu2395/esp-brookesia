@@ -6,6 +6,10 @@ This checkout uses Dafeiyu character animations by default. See the
 [integration guide (Chinese)](./assets/dafeiyu/README_CN.md) for resource mapping,
 VoCat configuration notes, conversion, and flashing the `anim_icon` partition.
 
+[Voice close-up mode (Chinese)](./DAFEIYU_CLOSEUP_CN.md) gradually zooms into
+Dafeiyu's face when you say “进入贴脸模式”; “退出贴脸模式” returns to the full-body view.
+The selected view also applies to conversation expressions and DSH status updates.
+
 The [direct DSH pet sync integration (Chinese)](./DSH_PET_SYNC_CN.md) runs inside DSH,
 pushes work status to the device, and drives local animations and voice status queries without Python.
 

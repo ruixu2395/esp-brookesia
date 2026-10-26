@@ -100,6 +100,7 @@ public:
         HideQrcode,
         NotifyFlushFinished,
         RefreshAll,
+        SetEmojiSegment,
         Max,
     };
 
@@ -233,6 +234,12 @@ private:
         }
     };
 
+    inline static constexpr std::array<FunctionParameterSpec, 3> SET_EMOJI_SEGMENT_PARAMETERS = {{
+        {.name = "Emoji", .description = "Emoji asset name.", .type = FunctionValueType::String},
+        {.name = "StartFrame", .description = "First frame (inclusive).", .type = FunctionValueType::Number},
+        {.name = "EndFrame", .description = "Last frame (inclusive).", .type = FunctionValueType::Number},
+    }};
+
     inline static constexpr std::array<FunctionSpec, static_cast<size_t>(FunctionId::Max)> FUNCTION_SPECS = {{
             {
                 .name = "SetConfig",
@@ -304,6 +311,11 @@ private:
                 .name = "RefreshAll",
                 .description = "Refresh the screen.",
                 .parameters = EMPTY_PARAMETERS,
+            },
+            {
+                .name = "SetEmojiSegment",
+                .description = "Play an inclusive emoji frame range once, using the asset's FPS. Holds the last frame.",
+                .parameters = SET_EMOJI_SEGMENT_PARAMETERS,
             },
         }
     };
@@ -382,7 +394,7 @@ BROOKESIA_DESCRIBE_STRUCT(ExpressionEmote::FlushReadyEventParam, (), (x_start, y
 BROOKESIA_DESCRIBE_ENUM(
     ExpressionEmote::FunctionId, SetConfig, LoadAssetsSource, SetEmoji, HideEmoji, SetAnimation, InsertAnimation,
     StopAnimation, WaitAnimationFrameDone, SetEventMessage, HideEventMessage, SetQrcode, HideQrcode,
-    NotifyFlushFinished, RefreshAll, Max
+    NotifyFlushFinished, RefreshAll, SetEmojiSegment, Max
 );
 BROOKESIA_DESCRIBE_ENUM(ExpressionEmote::EventId, FlushReady, Max);
 

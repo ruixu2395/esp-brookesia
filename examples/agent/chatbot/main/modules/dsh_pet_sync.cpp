@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: Apache-2.0 */
 #include "sdkconfig.h"
 #include "dsh_pet_sync.hpp"
+#include "character_view.hpp"
 #include "brookesia/service_helper.hpp"
 
 #if CONFIG_EXAMPLE_DSH_PET_SYNC_ENABLE
@@ -17,7 +18,6 @@
 #include "dsh_pet_state.hpp"
 
 namespace {
-using Emote = esp_brookesia::service::helper::ExpressionEmote;
 constexpr const char *TAG = "DshPetSync";
 constexpr size_t MAX_BODY_BYTES = 1024;
 std::mutex state_mutex;
@@ -159,7 +159,7 @@ void worker(void *)
         {
             std::lock_guard<std::mutex> lock(state_mutex);
             if (const auto emoji = pet.next_emoji(now)) {
-                if (!Emote::call_function_async(Emote::FunctionId::SetEmoji, emoji)) pet.retry_render();
+                if (!character_view::set_emoji(emoji)) pet.retry_render();
             }
         }
         vTaskDelay(pdMS_TO_TICKS(250));
@@ -213,8 +213,7 @@ void dsh_pet_sync::set_local_emoji(const char *name)
     std::lock_guard<std::mutex> lock(state_mutex);
     pet.local_emoji_changed(now_ms());
 #endif
-    using Emote = esp_brookesia::service::helper::ExpressionEmote;
-    Emote::call_function_async(Emote::FunctionId::SetEmoji, name);
+    character_view::set_emoji(name);
 }
 
 boost::json::object dsh_pet_sync::status()

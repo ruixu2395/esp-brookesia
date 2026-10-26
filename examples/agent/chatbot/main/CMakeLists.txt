@@ -75,12 +75,18 @@ message(STATUS "Asset Resolution: ${RESOLUTION}")
 if(CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS)
     set(DAFEIYU_ASSETS_DIR "${CMAKE_CURRENT_LIST_DIR}/../assets/dafeiyu")
     set(DAFEIYU_PACKER "${CMAKE_CURRENT_LIST_DIR}/../tools/build_dafeiyu_assets.py")
+    set(DAFEIYU_VIEW_ARGS "")
+    set(DAFEIYU_PROFILE_DIR "${DAFEIYU_ASSETS_DIR}/${RESOLUTION}")
+    if(CONFIG_EXAMPLE_DAFEIYU_CLOSEUP_ENABLE)
+        list(APPEND DAFEIYU_VIEW_ARGS --closeup)
+        set(DAFEIYU_PROFILE_DIR "${DAFEIYU_ASSETS_DIR}/closeup/${RESOLUTION}")
+    endif()
     get_component_path("esp_emote_assets" EMOTE_ASSETS_COMPONENT_DIR)
     partition_table_get_partition_info(ASSETS_PARTITION_SIZE
         "--partition-name ${ASSETS_PARTITION_NAME}" "size")
     file(GLOB_RECURSE DAFEIYU_ASSET_FILES CONFIGURE_DEPENDS
-        "${DAFEIYU_ASSETS_DIR}/${RESOLUTION}/*.eaf"
-        "${DAFEIYU_ASSETS_DIR}/${RESOLUTION}/*.json")
+        "${DAFEIYU_PROFILE_DIR}/*.eaf"
+        "${DAFEIYU_PROFILE_DIR}/*.json")
     file(GLOB_RECURSE EMOTE_SUPPORT_FILES CONFIGURE_DEPENDS
         "${EMOTE_ASSETS_COMPONENT_DIR}/font/*.bin"
         "${EMOTE_ASSETS_COMPONENT_DIR}/emoji_*/*.bin"
@@ -93,6 +99,7 @@ if(CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS)
             --component "${EMOTE_ASSETS_COMPONENT_DIR}"
             --assets "${DAFEIYU_ASSETS_DIR}"
             --resolution "${RESOLUTION}"
+            ${DAFEIYU_VIEW_ARGS}
             --name-length "${CONFIG_MMAP_FILE_NAME_LENGTH}"
             --partition-size "${ASSETS_PARTITION_SIZE}"
             --output "${ASSETS_FILE}"

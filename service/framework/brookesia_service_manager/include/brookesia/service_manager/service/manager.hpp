@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "boost/thread/shared_mutex.hpp"
+#include "boost/thread/condition_variable.hpp"
 
 #include "brookesia/lib_utils/plugin.hpp"
 #include "brookesia/lib_utils/task_scheduler.hpp"

@@ -83,12 +83,12 @@ def huffman(data):
     return struct.pack("<H", len(dictionary)) + dictionary + encoded
 
 
-def encode_frame(image, size):
+def encode_frame(image, size, colors=64):
     # Composite antialiased transparent edges onto the player's black background.
     rgba = ImageOps.contain(image.convert("RGBA"), size, Image.Resampling.LANCZOS)
     canvas = Image.new("RGB", size, "black")
     canvas.paste(rgba, ((size[0] - rgba.width) // 2, (size[1] - rgba.height) // 2), rgba)
-    indexed = canvas.quantize(colors=64, method=Image.Quantize.MEDIANCUT,
+    indexed = canvas.quantize(colors=colors, method=Image.Quantize.MEDIANCUT,
                               dither=Image.Dither.NONE)
     rgb = indexed.getpalette()
     palette = bytearray()

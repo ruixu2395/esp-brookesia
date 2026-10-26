@@ -1,0 +1,617 @@
+{
+  "repository": "https://github.com/QCYTSN/dsh-dafeiyu",
+  "commit": "43542f8fc9567f45ce98534d407abca2ff4ff74e",
+  "face_centers": {
+    "idle": [
+      0.5097087378640777,
+      0.5087209302325582
+    ],
+    "thinking": [
+      0.5097087378640777,
+      0.5232558139534884
+    ],
+    "working": [
+      0.5097087378640777,
+      0.5523255813953488
+    ],
+    "success": [
+      0.5097087378640777,
+      0.5087209302325582
+    ],
+    "error": [
+      0.5097087378640777,
+      0.5232558139534884
+    ],
+    "dragging": [
+      0.5097087378640777,
+      0.42151162790697677
+    ],
+    "idle_yawn": [
+      0.5097087378640777,
+      0.5377906976744186
+    ]
+  },
+  "face_height": 0.2616279069767442,
+  "transition_ms": 1200,
+  "profiles": {
+    "320_240": {
+      "sprite_size": [
+        216,
+        180
+      ],
+      "viewport_size": [
+        320,
+        200
+      ],
+      "view_colors": 32,
+      "full_unique_frames_per_clip": 8,
+      "face_unique_frames_per_clip": 4,
+      "source_frames": {
+        "full": {
+          "idle": [
+            "idle/idle_060.webp",
+            "idle/idle_062.webp",
+            "idle/idle_064.webp",
+            "idle/idle_066.webp",
+            "idle/idle_068.webp",
+            "idle/idle_070.webp",
+            "idle/idle_072.webp",
+            "idle/idle_074.webp",
+            "idle/idle_072.webp",
+            "idle/idle_070.webp",
+            "idle/idle_068.webp",
+            "idle/idle_066.webp",
+            "idle/idle_064.webp",
+            "idle/idle_062.webp"
+          ],
+          "thinking": [
+            "thinking/thinking_100.webp",
+            "thinking/thinking_102.webp",
+            "thinking/thinking_104.webp",
+            "thinking/thinking_106.webp",
+            "thinking/thinking_108.webp",
+            "thinking/thinking_110.webp",
+            "thinking/thinking_112.webp",
+            "thinking/thinking_114.webp",
+            "thinking/thinking_112.webp",
+            "thinking/thinking_110.webp",
+            "thinking/thinking_108.webp",
+            "thinking/thinking_106.webp",
+            "thinking/thinking_104.webp",
+            "thinking/thinking_102.webp"
+          ],
+          "working": [
+            "working/working_100.webp",
+            "working/working_102.webp",
+            "working/working_104.webp",
+            "working/working_106.webp",
+            "working/working_108.webp",
+            "working/working_110.webp",
+            "working/working_112.webp",
+            "working/working_114.webp",
+            "working/working_112.webp",
+            "working/working_110.webp",
+            "working/working_108.webp",
+            "working/working_106.webp",
+            "working/working_104.webp",
+            "working/working_102.webp"
+          ],
+          "success": [
+            "success/success_100.webp",
+            "success/success_102.webp",
+            "success/success_104.webp",
+            "success/success_106.webp",
+            "success/success_108.webp",
+            "success/success_110.webp",
+            "success/success_112.webp",
+            "success/success_114.webp",
+            "success/success_112.webp",
+            "success/success_110.webp",
+            "success/success_108.webp",
+            "success/success_106.webp",
+            "success/success_104.webp",
+            "success/success_102.webp"
+          ],
+          "error": [
+            "error/error_040.webp",
+            "error/error_042.webp",
+            "error/error_044.webp",
+            "error/error_046.webp",
+            "error/error_048.webp",
+            "error/error_050.webp",
+            "error/error_052.webp",
+            "error/error_054.webp",
+            "error/error_052.webp",
+            "error/error_050.webp",
+            "error/error_048.webp",
+            "error/error_046.webp",
+            "error/error_044.webp",
+            "error/error_042.webp"
+          ],
+          "dragging": [
+            "dragging/dragging_058.webp",
+            "dragging/dragging_060.webp",
+            "dragging/dragging_062.webp",
+            "dragging/dragging_064.webp",
+            "dragging/dragging_066.webp",
+            "dragging/dragging_068.webp",
+            "dragging/dragging_070.webp",
+            "dragging/dragging_072.webp",
+            "dragging/dragging_070.webp",
+            "dragging/dragging_068.webp",
+            "dragging/dragging_066.webp",
+            "dragging/dragging_064.webp",
+            "dragging/dragging_062.webp",
+            "dragging/dragging_060.webp"
+          ],
+          "idle_yawn": [
+            "idle_yawn/idle_yawn_140.webp",
+            "idle_yawn/idle_yawn_142.webp",
+            "idle_yawn/idle_yawn_144.webp",
+            "idle_yawn/idle_yawn_146.webp",
+            "idle_yawn/idle_yawn_148.webp",
+            "idle_yawn/idle_yawn_150.webp",
+            "idle_yawn/idle_yawn_152.webp",
+            "idle_yawn/idle_yawn_154.webp",
+            "idle_yawn/idle_yawn_152.webp",
+            "idle_yawn/idle_yawn_150.webp",
+            "idle_yawn/idle_yawn_148.webp",
+            "idle_yawn/idle_yawn_146.webp",
+            "idle_yawn/idle_yawn_144.webp",
+            "idle_yawn/idle_yawn_142.webp"
+          ]
+        },
+        "face": {
+          "idle": [
+            "idle/idle_060.webp",
+            "idle/idle_062.webp",
+            "idle/idle_064.webp",
+            "idle/idle_066.webp",
+            "idle/idle_064.webp",
+            "idle/idle_062.webp"
+          ],
+          "thinking": [
+            "thinking/thinking_100.webp",
+            "thinking/thinking_102.webp",
+            "thinking/thinking_104.webp",
+            "thinking/thinking_106.webp",
+            "thinking/thinking_104.webp",
+            "thinking/thinking_102.webp"
+          ],
+          "working": [
+            "working/working_100.webp",
+            "working/working_102.webp",
+            "working/working_104.webp",
+            "working/working_106.webp",
+            "working/working_104.webp",
+            "working/working_102.webp"
+          ],
+          "success": [
+            "success/success_100.webp",
+            "success/success_102.webp",
+            "success/success_104.webp",
+            "success/success_106.webp",
+            "success/success_104.webp",
+            "success/success_102.webp"
+          ],
+          "error": [
+            "error/error_040.webp",
+            "error/error_042.webp",
+            "error/error_044.webp",
+            "error/error_046.webp",
+            "error/error_044.webp",
+            "error/error_042.webp"
+          ],
+          "dragging": [
+            "dragging/dragging_058.webp",
+            "dragging/dragging_060.webp",
+            "dragging/dragging_062.webp",
+            "dragging/dragging_064.webp",
+            "dragging/dragging_062.webp",
+            "dragging/dragging_060.webp"
+          ],
+          "idle_yawn": [
+            "idle_yawn/idle_yawn_140.webp",
+            "idle_yawn/idle_yawn_142.webp",
+            "idle_yawn/idle_yawn_144.webp",
+            "idle_yawn/idle_yawn_146.webp",
+            "idle_yawn/idle_yawn_144.webp",
+            "idle_yawn/idle_yawn_142.webp"
+          ]
+        }
+      },
+      "files": {
+        "view_zoom.eaf": {
+          "bytes": 218698,
+          "sha256": "2ee55b901595175e0fc484afd31a4d5fdbb02a0784177c9495106d253e394b7c"
+        },
+        "idle.eaf": {
+          "bytes": 88885,
+          "sha256": "887a6275db1f11264e5da7a0c44d5ec6730afe62c4efb430215f80eca9369690"
+        },
+        "thinking.eaf": {
+          "bytes": 90620,
+          "sha256": "d9b63ff7f61b586d322df128ed8ff07cdf831e3fec3bebadc54a61fe4f30d1b1"
+        },
+        "working.eaf": {
+          "bytes": 102305,
+          "sha256": "34edb3e6e06ef508455663418d1f009eed44654e5559a0face78a99de88dd141"
+        },
+        "success.eaf": {
+          "bytes": 92134,
+          "sha256": "5227ea7cce58e58a013516e0f16af9579df4afe34d2cb5c4e6a8a2d45cf771ee"
+        },
+        "error.eaf": {
+          "bytes": 88636,
+          "sha256": "a5d059d7bde375d308d9c3b7f34c12ebe8bf72354ecf64ad8fc3c08422130877"
+        },
+        "dragging.eaf": {
+          "bytes": 92575,
+          "sha256": "6662df362e03810961537cae005448dcb0e93127364e3c8223e52d9755b30e2f"
+        },
+        "idle_yawn.eaf": {
+          "bytes": 88428,
+          "sha256": "0d6f7b8bf4090cdc2aad8f837f755087981e5f51d7355c291699e33aae405e1d"
+        },
+        "face_idle.eaf": {
+          "bytes": 108354,
+          "sha256": "8d21523c5a410bc3ef1d0712cd9e2b66c942da4808d356fd9b29b869b5dfe1d2"
+        },
+        "face_thinking.eaf": {
+          "bytes": 107148,
+          "sha256": "81c4da8bf9c0e6d98c6dec62fff78b9367ab072249727493659b646c6b9f9e55"
+        },
+        "face_working.eaf": {
+          "bytes": 110899,
+          "sha256": "737e39894d36e55774a3df632376376c84b1795db5519d140637d224e00059f4"
+        },
+        "face_success.eaf": {
+          "bytes": 107128,
+          "sha256": "6bee05c46b51a3fbeaa40a4e0c80b54f7e8d421f1fe88106a57f3339614ee00f"
+        },
+        "face_error.eaf": {
+          "bytes": 112158,
+          "sha256": "28be0a598cfc99ef1911d418e6ff238ef90a3878c53ca7c68e38878b955afde1"
+        },
+        "face_dragging.eaf": {
+          "bytes": 105521,
+          "sha256": "9c5c6871ca9429144f56400ba31199c7d9db25c3ea6ec5adbe2a51a51259eb56"
+        },
+        "face_idle_yawn.eaf": {
+          "bytes": 103701,
+          "sha256": "67ceb1645b14683b112fa78a839b091c3ef7ba50ef542011a11a76d019453535"
+        }
+      }
+    },
+    "360_360": {
+      "sprite_size": [
+        288,
+        240
+      ],
+      "viewport_size": [
+        360,
+        320
+      ],
+      "view_colors": 32,
+      "full_unique_frames_per_clip": 4,
+      "face_unique_frames_per_clip": 3,
+      "source_frames": {
+        "full": {
+          "idle": [
+            "idle/idle_068.webp",
+            "idle/idle_070.webp",
+            "idle/idle_072.webp",
+            "idle/idle_074.webp",
+            "idle/idle_072.webp",
+            "idle/idle_070.webp"
+          ],
+          "thinking": [
+            "thinking/thinking_108.webp",
+            "thinking/thinking_110.webp",
+            "thinking/thinking_112.webp",
+            "thinking/thinking_114.webp",
+            "thinking/thinking_112.webp",
+            "thinking/thinking_110.webp"
+          ],
+          "working": [
+            "working/working_108.webp",
+            "working/working_110.webp",
+            "working/working_112.webp",
+            "working/working_114.webp",
+            "working/working_112.webp",
+            "working/working_110.webp"
+          ],
+          "success": [
+            "success/success_108.webp",
+            "success/success_110.webp",
+            "success/success_112.webp",
+            "success/success_114.webp",
+            "success/success_112.webp",
+            "success/success_110.webp"
+          ],
+          "error": [
+            "error/error_048.webp",
+            "error/error_050.webp",
+            "error/error_052.webp",
+            "error/error_054.webp",
+            "error/error_052.webp",
+            "error/error_050.webp"
+          ],
+          "dragging": [
+            "dragging/dragging_066.webp",
+            "dragging/dragging_068.webp",
+            "dragging/dragging_070.webp",
+            "dragging/dragging_072.webp",
+            "dragging/dragging_070.webp",
+            "dragging/dragging_068.webp"
+          ],
+          "idle_yawn": [
+            "idle_yawn/idle_yawn_148.webp",
+            "idle_yawn/idle_yawn_150.webp",
+            "idle_yawn/idle_yawn_152.webp",
+            "idle_yawn/idle_yawn_154.webp",
+            "idle_yawn/idle_yawn_152.webp",
+            "idle_yawn/idle_yawn_150.webp"
+          ]
+        },
+        "face": {
+          "idle": [
+            "idle/idle_068.webp",
+            "idle/idle_070.webp",
+            "idle/idle_072.webp",
+            "idle/idle_070.webp"
+          ],
+          "thinking": [
+            "thinking/thinking_108.webp",
+            "thinking/thinking_110.webp",
+            "thinking/thinking_112.webp",
+            "thinking/thinking_110.webp"
+          ],
+          "working": [
+            "working/working_108.webp",
+            "working/working_110.webp",
+            "working/working_112.webp",
+            "working/working_110.webp"
+          ],
+          "success": [
+            "success/success_108.webp",
+            "success/success_110.webp",
+            "success/success_112.webp",
+            "success/success_110.webp"
+          ],
+          "error": [
+            "error/error_048.webp",
+            "error/error_050.webp",
+            "error/error_052.webp",
+            "error/error_050.webp"
+          ],
+          "dragging": [
+            "dragging/dragging_066.webp",
+            "dragging/dragging_068.webp",
+            "dragging/dragging_070.webp",
+            "dragging/dragging_068.webp"
+          ],
+          "idle_yawn": [
+            "idle_yawn/idle_yawn_148.webp",
+            "idle_yawn/idle_yawn_150.webp",
+            "idle_yawn/idle_yawn_152.webp",
+            "idle_yawn/idle_yawn_150.webp"
+          ]
+        }
+      },
+      "files": {
+        "view_zoom.eaf": {
+          "bytes": 351966,
+          "sha256": "480276d4ebd08184fb7db87fa6341554df2e5e08bbfa0f19b107df7126eb5570"
+        },
+        "idle.eaf": {
+          "bytes": 69769,
+          "sha256": "53459b20ac0dc6484ae486e102c9d127aca97d4820f6725f5cca794a1109bb2e"
+        },
+        "thinking.eaf": {
+          "bytes": 70528,
+          "sha256": "ad98d270155b731ad2b4df957c7683f45e2ba22e5b3acb07f5ee4ad20c4366a7"
+        },
+        "working.eaf": {
+          "bytes": 78894,
+          "sha256": "9058cb8abc93e735f9c37e961e96ecf9e591b266065a0a696f6e4e304f28dd1d"
+        },
+        "success.eaf": {
+          "bytes": 74947,
+          "sha256": "ee0b23121df58c2fe6b2cc801c361481d54838e9f7dea29a00814bbe743575b0"
+        },
+        "error.eaf": {
+          "bytes": 69826,
+          "sha256": "5c39131978377c0531d7dab2af761d871539e697f61653dbd0db72b4ea1be4cf"
+        },
+        "dragging.eaf": {
+          "bytes": 71954,
+          "sha256": "bccddd19eca66fc4cde7013b3abfd7503552ac186efc271c52be78d486c3d256"
+        },
+        "idle_yawn.eaf": {
+          "bytes": 69090,
+          "sha256": "e7a0c7d142ff0ab53db1ab71038ddf1d2d93a633fa41628c780fe2171be529fd"
+        },
+        "face_idle.eaf": {
+          "bytes": 113737,
+          "sha256": "c8987d9b3c5d4c223d61bab58b384c1264013f946a464b061e6a9d9be7c01a13"
+        },
+        "face_thinking.eaf": {
+          "bytes": 108257,
+          "sha256": "12d0db47e90ca0b8f492ea0112e77732c36699f16e5b24335c0e90ad9fa4566a"
+        },
+        "face_working.eaf": {
+          "bytes": 112068,
+          "sha256": "4de468d420a4c827a135358bd8c566e06a5cd80a366cea40ec7478c38559c472"
+        },
+        "face_success.eaf": {
+          "bytes": 109752,
+          "sha256": "8d84e799a6a7988c3a0c991fc962ba40a75a6cabaede64ea9c7db7aab57f2d56"
+        },
+        "face_error.eaf": {
+          "bytes": 114621,
+          "sha256": "87f94ecf0f38fccaf6b718a4f19126177dd354e53a203f26b94b3c55116b66bc"
+        },
+        "face_dragging.eaf": {
+          "bytes": 107158,
+          "sha256": "77722e40ac6d800a8f651987612c1569df624887a60567dbbcc4ae285ed4c488"
+        },
+        "face_idle_yawn.eaf": {
+          "bytes": 111900,
+          "sha256": "6896b5195fa5f3a5b224f32c219743a43834fa20e0ef62c95b0eff8a355c3774"
+        }
+      }
+    },
+    "1024_600": {
+      "sprite_size": [
+        412,
+        344
+      ],
+      "viewport_size": [
+        512,
+        400
+      ],
+      "view_colors": 16,
+      "full_unique_frames_per_clip": 3,
+      "face_unique_frames_per_clip": 2,
+      "source_frames": {
+        "full": {
+          "idle": [
+            "idle/idle_074.webp",
+            "idle/idle_076.webp",
+            "idle/idle_078.webp",
+            "idle/idle_076.webp"
+          ],
+          "thinking": [
+            "thinking/thinking_114.webp",
+            "thinking/thinking_116.webp",
+            "thinking/thinking_118.webp",
+            "thinking/thinking_116.webp"
+          ],
+          "working": [
+            "working/working_114.webp",
+            "working/working_116.webp",
+            "working/working_118.webp",
+            "working/working_116.webp"
+          ],
+          "success": [
+            "success/success_114.webp",
+            "success/success_116.webp",
+            "success/success_118.webp",
+            "success/success_116.webp"
+          ],
+          "error": [
+            "error/error_054.webp",
+            "error/error_056.webp",
+            "error/error_058.webp",
+            "error/error_056.webp"
+          ],
+          "dragging": [
+            "dragging/dragging_072.webp",
+            "dragging/dragging_074.webp",
+            "dragging/dragging_076.webp",
+            "dragging/dragging_074.webp"
+          ],
+          "idle_yawn": [
+            "idle_yawn/idle_yawn_154.webp",
+            "idle_yawn/idle_yawn_156.webp",
+            "idle_yawn/idle_yawn_158.webp",
+            "idle_yawn/idle_yawn_156.webp"
+          ]
+        },
+        "face": {
+          "idle": [
+            "idle/idle_074.webp",
+            "idle/idle_076.webp"
+          ],
+          "thinking": [
+            "thinking/thinking_114.webp",
+            "thinking/thinking_116.webp"
+          ],
+          "working": [
+            "working/working_114.webp",
+            "working/working_116.webp"
+          ],
+          "success": [
+            "success/success_114.webp",
+            "success/success_116.webp"
+          ],
+          "error": [
+            "error/error_054.webp",
+            "error/error_056.webp"
+          ],
+          "dragging": [
+            "dragging/dragging_072.webp",
+            "dragging/dragging_074.webp"
+          ],
+          "idle_yawn": [
+            "idle_yawn/idle_yawn_154.webp",
+            "idle_yawn/idle_yawn_156.webp"
+          ]
+        }
+      },
+      "files": {
+        "view_zoom.eaf": {
+          "bytes": 385515,
+          "sha256": "7e4a12b81395e0b450361c8e4320fa6046b77dcefb917beba305eddcf5cf32ef"
+        },
+        "idle.eaf": {
+          "bytes": 91493,
+          "sha256": "8ee97528a6d57c6c2980fdfa24857339234a57e8292d76ec0395113af9a12c18"
+        },
+        "thinking.eaf": {
+          "bytes": 92971,
+          "sha256": "59a82b0ff09ec0d1c2998ec7aa25d4a209a0b76d8a8122f7a5665a111b521362"
+        },
+        "working.eaf": {
+          "bytes": 101382,
+          "sha256": "4a44cde8ced571f835fd1582f49f3c7e7e726e36fbd5db47dde42249c1a59cda"
+        },
+        "success.eaf": {
+          "bytes": 99478,
+          "sha256": "c1dfe1d4b147fe8d57ee9bcb5245113061c085d36d11764cefb7a401465cd6b4"
+        },
+        "error.eaf": {
+          "bytes": 94041,
+          "sha256": "0354c66a574f24e1ad9fbeb10418baa28a6c2ee9517eca6dbdfe95043ac9614e"
+        },
+        "dragging.eaf": {
+          "bytes": 93579,
+          "sha256": "2bc78514bbf37676ddfc0c0beb1e90620d4c1f6bf24d053c965d59844fee483e"
+        },
+        "idle_yawn.eaf": {
+          "bytes": 89125,
+          "sha256": "f60e3ac0178f632ce386b4748ffb0296895cec6f6eb439b281ea28e2210f611a"
+        },
+        "face_idle.eaf": {
+          "bytes": 72393,
+          "sha256": "e1abdaab19c2c9844f8acc67cfb08843b0ba5263b7c7621eb37bcbbc5ba81113"
+        },
+        "face_thinking.eaf": {
+          "bytes": 73646,
+          "sha256": "4c896a8fc071ce61eb183fcdbba5624e77d50625723044183c2ac8f6f152fa17"
+        },
+        "face_working.eaf": {
+          "bytes": 79666,
+          "sha256": "b2c8f60c921540989c7ed38b25d63e5ee1699fc774f4c3e60f8a0d1a9aa869b4"
+        },
+        "face_success.eaf": {
+          "bytes": 70644,
+          "sha256": "522bc6c94a5d5c2349f6895235c73bd078e4d2002a851da010ff4572cf1a992c"
+        },
+        "face_error.eaf": {
+          "bytes": 76172,
+          "sha256": "21c523b84f8e2141949fe321c00a66e8435569020cd4d33de95ac28299921fa7"
+        },
+        "face_dragging.eaf": {
+          "bytes": 75768,
+          "sha256": "807f207cd04c73db8158ae86638684ad2f68491e124094536435515b991a189a"
+        },
+        "face_idle_yawn.eaf": {
+          "bytes": 73708,
+          "sha256": "4d776bf75a8d9594b6e69535468e7e3b6d4462fc99a0d77242844d34de6eaf44"
+        }
+      }
+    }
+  }
+}
