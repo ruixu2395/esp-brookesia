@@ -303,6 +303,6 @@
     "emote": "view_zoom",
     "src": "view_zoom.eaf",
     "loop": false,
-    "fps": 10
+    "fps": 15
   }
 ]

@@ -8,9 +8,9 @@
 
 namespace character_view {
 
-// Shared with tools/import_dafeiyu_closeup.py: 12 frames at 10 fps.
+// Shared with tools/import_dafeiyu_closeup.py: 18 frames at 15 fps.
 constexpr int64_t TRANSITION_MS = 1200;
-constexpr int VIEW_FRAMES = 12;
+constexpr int VIEW_FRAMES = 18;
 
 inline std::optional<bool> voice_command(std::string text)
 {
@@ -45,6 +45,7 @@ public:
     bool target_face() const { return target_face_; }
     void set_emoji(const std::string &emoji)
     {
+        if (emoji_ == emoji) return; // Preserve the running blink on repeated status updates.
         emoji_ = emoji;
         dirty_ = true;
     }

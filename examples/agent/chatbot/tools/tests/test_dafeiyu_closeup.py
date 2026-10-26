@@ -25,6 +25,22 @@ def frames(data):
 
 
 class CloseUpAssetsTest(unittest.TestCase):
+    def test_blink_has_closed_eyes_and_reopens_without_duplicating_holds(self):
+        source = packer.read_json(ASSETS / "closeup/source.json")
+        for resolution, profile in source["profiles"].items():
+            for view in ("full", "face"):
+                paths = profile["source_frames"][view]["idle"]
+                # Verified source frames: 29 is open, 41/57 closed, 65 open again.
+                self.assertEqual(paths[:24], ["idle/idle_029.webp"] * 24)
+                self.assertLess(paths.index("idle/idle_041.webp"), paths.index("idle/idle_065.webp"))
+                self.assertIn("idle/idle_057.webp", paths)
+                name = "face_idle.eaf" if view == "face" else "idle.eaf"
+                decoded = frames((ASSETS / "closeup" / resolution / name).read_bytes())
+                self.assertEqual(len(decoded), len(paths))
+                self.assertEqual(len(set(decoded)), 11)
+                self.assertNotEqual(decoded[0], decoded[paths.index("idle/idle_041.webp")])
+                self.assertTrue(all(path in profile["source_sha256"] for path in paths))
+
     def test_assets_and_provenance(self):
         source = packer.read_json(ASSETS / "closeup/source.json")
         original = packer.read_json(ASSETS / "source.json")
@@ -47,13 +63,13 @@ class CloseUpAssetsTest(unittest.TestCase):
             if not directory.is_dir():
                 continue
             zoom = frames((directory / "view_zoom.eaf").read_bytes())
-            self.assertEqual(len(zoom), 24)
-            self.assertEqual(zoom[:12], zoom[12:][::-1])
-            self.assertEqual(zoom[11], frames((directory / "face_idle.eaf").read_bytes())[0])
-            count = 25
+            self.assertEqual(len(zoom), 36)
+            self.assertEqual(zoom[:18], zoom[18:][::-1])
+            self.assertEqual(zoom[17], frames((directory / "face_idle.eaf").read_bytes())[0])
+            count = 37
             starts = {struct.unpack_from("<II", (directory / "view_zoom.eaf").read_bytes(), 16 + 8 * i)[1]
                       for i in range(count - 1)}
-            self.assertEqual(len(starts), 12)  # reverse motion costs table entries only
+            self.assertEqual(len(starts), 18)  # reverse motion costs table entries only
 
     def test_every_expression_has_both_views_and_packs(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -71,7 +87,7 @@ class CloseUpAssetsTest(unittest.TestCase):
                 for alias in packer.read_json(ASSETS / resolution / "emote.json"):
                     self.assertIn(alias["emote"], by_name)
                     self.assertIn("face_" + alias["emote"], by_name)
-                self.assertEqual(by_name["view_zoom"]["fps"], 10)
+                self.assertEqual(by_name["view_zoom"]["fps"], 15)
                 self.assertFalse(by_name["view_zoom"]["loop"])
                 files = packer.build_files(component, ASSETS, resolution, closeup=True)
                 self.assertLess(len(packer.pack_image(files, 32)), 3072000)
