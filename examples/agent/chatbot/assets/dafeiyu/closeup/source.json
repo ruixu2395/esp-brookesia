@@ -493,7 +493,305 @@
         360,
         320
       ],
-      "view_colors": 16,
+      "view_colors": 24,
+      "full_colors": 24,
+      "enhancement": {
+        "repository": "https://github.com/PC2005-cloud/dsh-pet",
+        "commit": "549fff2ea33c2acfb16612c76912c6137da4a758",
+        "crop": [
+          100,
+          0,
+          412,
+          344
+        ],
+        "scale": 4,
+        "denoise": 2,
+        "tool": "waifu2x-ncnn-vulkan-20220728",
+        "tool_sha256": "a19656ad1f63e5f523be7a4d0a3a0ada5b01bd6e6347320455ab941ece917006",
+        "models": {
+          "noise0_model.bin": "b15c356a36bcbf6fb8c2f1404ca016fd917d4e45426bcf41f7a3867022fdd7b0",
+          "noise0_model.param": "8fda717f004e75f02e4eaf9901bd37301fa51b1f5cd80d53a466a274406595d3",
+          "noise0_scale2.0x_model.bin": "5329a9375c9cfb64a60a2903fd8ae6e2851d9b069556bf025dbab9d0216fb27c",
+          "noise0_scale2.0x_model.param": "9b06073e039ca93d5bd79f6bb42016cd98d5bdefa0e9761df6b22b844c39965f",
+          "noise1_model.bin": "3407cb87c2503cbd69f8a6703b31bc4949a72080a3e1b1e536dba8bdbfad934f",
+          "noise1_model.param": "8fda717f004e75f02e4eaf9901bd37301fa51b1f5cd80d53a466a274406595d3",
+          "noise1_scale2.0x_model.bin": "862c0e40f3df956ff57bd4d168c85dea5d375b614077fdddd3ac8cfdb9a686da",
+          "noise1_scale2.0x_model.param": "9b06073e039ca93d5bd79f6bb42016cd98d5bdefa0e9761df6b22b844c39965f",
+          "noise2_model.bin": "b45d5febeb56166b7aff055cb0fbb87647dae528968f97d838dfd7ce0b7117f4",
+          "noise2_model.param": "8fda717f004e75f02e4eaf9901bd37301fa51b1f5cd80d53a466a274406595d3",
+          "noise2_scale2.0x_model.bin": "5c836e6ae022636cdd5590fbb66dbca2a5fc20bbf8e628884c3612ef72d51858",
+          "noise2_scale2.0x_model.param": "9b06073e039ca93d5bd79f6bb42016cd98d5bdefa0e9761df6b22b844c39965f",
+          "noise3_model.bin": "cd3d2440673d28d7a20aa6428a2a79e1c5e733f21de0a66785958f98d6994926",
+          "noise3_model.param": "8fda717f004e75f02e4eaf9901bd37301fa51b1f5cd80d53a466a274406595d3",
+          "noise3_scale2.0x_model.bin": "f42c18610fecb14a40f75cca9b9276a6889689d5937a4f75f0c2b21bde7e49ed",
+          "noise3_scale2.0x_model.param": "9b06073e039ca93d5bd79f6bb42016cd98d5bdefa0e9761df6b22b844c39965f",
+          "scale2.0x_model.bin": "d82ed30207fd07e1c16726a9ca838ce44e6e25a105b0278c7ca681516ee0e18e",
+          "scale2.0x_model.param": "9b06073e039ca93d5bd79f6bb42016cd98d5bdefa0e9761df6b22b844c39965f"
+        },
+        "videos": {
+          "idle": {
+            "file": "待机呼吸休闲.webm",
+            "sha256": "deb965d05a85dacf5ff4a20faa757846f0d11679598c3ec578a5571487660395",
+            "startFrame": 0,
+            "endFrame": 241,
+            "frameCount": 241
+          },
+          "thinking": {
+            "file": "工作状态-思考冒泡.webm",
+            "sha256": "b4a36cfa28ea5d7089e362a01972c6e880297c6dcd0d39f1994efd889a3c1be5",
+            "startFrame": 0,
+            "endFrame": 241,
+            "frameCount": 241
+          },
+          "working": {
+            "file": "工作状态-忙碌点按.webm",
+            "sha256": "b5d702e0c04adb7b255ac702001c24da36c8bf95efc891f693f4976986ab2435",
+            "startFrame": 0,
+            "endFrame": 241,
+            "frameCount": 241
+          },
+          "success": {
+            "file": "工作状态-雀跃庆祝.webm",
+            "sha256": "3ff681051a0bb4f152d7535d64b7f3194c30298bf56d41e521216a278f135d3e",
+            "startFrame": 0,
+            "endFrame": 241,
+            "frameCount": 241
+          },
+          "error": {
+            "file": "工作状态-垂头叹气冒汗.webm",
+            "sha256": "ab00c844e62221905574b4c070e0d7b6fa14fb2afa1064c27a160f10e25f7196",
+            "startFrame": 0,
+            "endFrame": 118,
+            "frameCount": 118
+          },
+          "dragging": {
+            "file": "被鼠标拖拽悬空反馈.webm",
+            "sha256": "31373a86026636eecc890db763760309360310eb095cf5575b13c9ca2a6cc80e",
+            "startFrame": 48,
+            "endFrame": 192,
+            "frameCount": 241
+          },
+          "idle_yawn": {
+            "file": "哈欠连天.webm",
+            "sha256": "2b23372e1ff2bc2f9078c09740708c960d4ea021f9fc3cca294d9df11e393ec8",
+            "startFrame": 0,
+            "endFrame": 241,
+            "frameCount": 241
+          }
+        },
+        "frames": {
+          "idle/idle_029.webp": {
+            "file": "idle/idle_029.png",
+            "video_frame": 28,
+            "decoded_sha256": "ad3b3bff244c79046f4eee74b99f33c08b6f41140c0707b4e7feba28d3cd71dc",
+            "sha256": "ec288cb7c3563a01389438c2f1e7d844c68eb5123c92391fe2a42a02295c44d3"
+          },
+          "idle/idle_033.webp": {
+            "file": "idle/idle_033.png",
+            "video_frame": 32,
+            "decoded_sha256": "f65393d027aa01c42b07855c503ab3158d4a93615f108a2e39b4b1d9c0917376",
+            "sha256": "3b9e415a0917c9588ce5c65e79640ee2eafa7ddc163db10ccb19cdaca9cc59a5"
+          },
+          "idle/idle_035.webp": {
+            "file": "idle/idle_035.png",
+            "video_frame": 34,
+            "decoded_sha256": "9b3ea8723ba775ab7ec005c94ca848235a163bd627ae690b0786a53adf0b4567",
+            "sha256": "0aa623be21f41dc17f3f12822d0c1fe69263eb245986099abc6e78e197ed3bd0"
+          },
+          "idle/idle_037.webp": {
+            "file": "idle/idle_037.png",
+            "video_frame": 36,
+            "decoded_sha256": "a276e350ff1e5013aa402c359652291e80abed98eb2c59e108ee4adf3a0d1b92",
+            "sha256": "23caceb0afe5bb442ac7376eac4d7fec48e1d6397748ab6334113ebcc1ea4d93"
+          },
+          "idle/idle_039.webp": {
+            "file": "idle/idle_039.png",
+            "video_frame": 38,
+            "decoded_sha256": "52aedd83d951f88bdb63e0fb4e72d2dc41dd86c4f4b70f9bcf7b0bf2eba6c90c",
+            "sha256": "df5efa5345fa05ee935e420be1688f60b39e1d524723f6c99ffda02f086cc143"
+          },
+          "idle/idle_041.webp": {
+            "file": "idle/idle_041.png",
+            "video_frame": 40,
+            "decoded_sha256": "99e21d854af4d606dd515fdd6cd8f1d8972521993f173c53fd1d73d6e7c56aee",
+            "sha256": "7107dc12b9a9d8c52cd63649ac07905b867f4ae427aa92be43ec9b69ad8b4c54"
+          },
+          "idle/idle_057.webp": {
+            "file": "idle/idle_057.png",
+            "video_frame": 56,
+            "decoded_sha256": "0701c7aef1654b8a6fa8bf094758ae87c210b2efdbce0325d05540c502f3bfff",
+            "sha256": "85289cfdfc24c639a9dffa739aa61e046d0362ba0a8e9b1a98a01e14bcdcc739"
+          },
+          "idle/idle_059.webp": {
+            "file": "idle/idle_059.png",
+            "video_frame": 58,
+            "decoded_sha256": "377d75182b3dfff063912e972c58843469fc6083a548ac338e8c0b89a2288c88",
+            "sha256": "9e9d8e3f7f7336b49a5b0c30f58609f514ccf82e7565125fcd9e05f1d72323e6"
+          },
+          "idle/idle_061.webp": {
+            "file": "idle/idle_061.png",
+            "video_frame": 60,
+            "decoded_sha256": "28145e291f0f683942aa765ff0074b5bd1f9bfc916b87701cd2c477347b8be27",
+            "sha256": "e9e1f9dc7d7d9da8fd01b083ee1918a8c0aaf8939309d2c8b304068ec0388c40"
+          },
+          "idle/idle_063.webp": {
+            "file": "idle/idle_063.png",
+            "video_frame": 62,
+            "decoded_sha256": "aecf6c80f3738b7f974cfca4b48470f1427269fcadf9907a260c8ed42add3d78",
+            "sha256": "9cc56a368c4cccae89a0ef1fa86dac6e9d716ec22a98509017fe8dff8d3976a2"
+          },
+          "idle/idle_065.webp": {
+            "file": "idle/idle_065.png",
+            "video_frame": 64,
+            "decoded_sha256": "835011ee8e0dc75b5ba8146fa1c80f31e4172d027c67b9f68449313cad0bccae",
+            "sha256": "302858acaff5c118739c38531cfd843f73e7c632a0e05390f2093d8f2b190d68"
+          },
+          "thinking/thinking_108.webp": {
+            "file": "thinking/thinking_108.png",
+            "video_frame": 107,
+            "decoded_sha256": "fa2a4dfcf747ecc3f00ad47e3063c23df53303c8057f2c39bf9f3d383ba6a914",
+            "sha256": "e7a7d2e761805bd4965c15d7722fff703eddca7fdb5acaf79fb2201f09b25548"
+          },
+          "thinking/thinking_110.webp": {
+            "file": "thinking/thinking_110.png",
+            "video_frame": 109,
+            "decoded_sha256": "e4e7d3a0c4ff20a1fa752e7929049ce4c2d2cec41e22ea233ca150e2bf5164c9",
+            "sha256": "30163cb347e4db129eb4bbc80b03ae3eeb8243c3178e9bf557a41ae4c63a0b52"
+          },
+          "thinking/thinking_112.webp": {
+            "file": "thinking/thinking_112.png",
+            "video_frame": 111,
+            "decoded_sha256": "36ff878d72707e5c15d91d99f8f90668c98389e6cd200dee60ee394a9075dc27",
+            "sha256": "7a1bf7dd1f6665dbb211e29628262c12cc929142f25d3bcae5eb91be3d93b90d"
+          },
+          "thinking/thinking_114.webp": {
+            "file": "thinking/thinking_114.png",
+            "video_frame": 113,
+            "decoded_sha256": "d181bed005ed2f8bc3d0c759b382cd40fe0257d5a51f7f76ea0808b3c0afd9b3",
+            "sha256": "60c9caf1b70a12a0fd3bd5575f2d2975d70d30766d60b1aea3d801e2e77be126"
+          },
+          "working/working_108.webp": {
+            "file": "working/working_108.png",
+            "video_frame": 107,
+            "decoded_sha256": "13db82fa5ace02a67144fbfa67c4f4fc2bfb8f6745dcd55287827a40b9e9ce5f",
+            "sha256": "6d316d875de3ac22e2b5d892972fe904e1bd77600af5a14193c150f51f75ed18"
+          },
+          "working/working_110.webp": {
+            "file": "working/working_110.png",
+            "video_frame": 109,
+            "decoded_sha256": "a02d2e1c4c310b1992f68f4af3c2f82984bb8f218defb367d76e681b9d610fd2",
+            "sha256": "d31b2f3f69e92e58fe31ed3c11d7433e98df9da346b173319c7a01d5a0cd01e4"
+          },
+          "working/working_112.webp": {
+            "file": "working/working_112.png",
+            "video_frame": 111,
+            "decoded_sha256": "da12947a51ccc6fcd647378f705510edad93b965230161c153d275b44319cabf",
+            "sha256": "3d24e42e214f231f8567542805ae6edf986d01480036f47ff4b4d8fab1c6d4df"
+          },
+          "working/working_114.webp": {
+            "file": "working/working_114.png",
+            "video_frame": 113,
+            "decoded_sha256": "772088b8bd73c42c6e23b3e49f8a0a1a2f9a6af8f6a3645c813962f7201469c8",
+            "sha256": "9f45216ae0e7060a534c58841c1397d993e33173dbbc22ec7976c114a3483884"
+          },
+          "success/success_108.webp": {
+            "file": "success/success_108.png",
+            "video_frame": 107,
+            "decoded_sha256": "eb325ca4ebc6516df80259ee1463c5b698c01e3ef613ddfeef8e587e358c2523",
+            "sha256": "724e3bd6121ba920c40397dafe0d45a75c93c938d266e32e365b51f77a62c559"
+          },
+          "success/success_110.webp": {
+            "file": "success/success_110.png",
+            "video_frame": 109,
+            "decoded_sha256": "363887a8dffb7981ed32b1e901cc88d9ee14b88e9596152c231adf77d3e0b6db",
+            "sha256": "55348c53be1c68990f86fb4acee914344c9c8a72fcfb161046b9038d08ee796a"
+          },
+          "success/success_112.webp": {
+            "file": "success/success_112.png",
+            "video_frame": 111,
+            "decoded_sha256": "8c4cf2172715f883987dbf73409686bd74ea4b7b5b9759d718146edec426a4e5",
+            "sha256": "ce4dd161e560ac3c1d7986bf781e7b73bb9757be750e458ceae8f03c6a547c18"
+          },
+          "success/success_114.webp": {
+            "file": "success/success_114.png",
+            "video_frame": 113,
+            "decoded_sha256": "7fa0f3058f7e5f079f5aee9592161873e9e9ce12134846e49184c80ee6b684e0",
+            "sha256": "e586ea4f0469f6c3173741406249f9bd0bc528c8ddf461d0da60b28a0a0f2b42"
+          },
+          "error/error_048.webp": {
+            "file": "error/error_048.png",
+            "video_frame": 47,
+            "decoded_sha256": "50e28b0cd6f061bada7386c4725a7e365d6299d757546dc60406b0351cd6138c",
+            "sha256": "82e0c92784a16051e490dece731cc11a25d7a58c4bb470c3a8c5da3f85bbf12a"
+          },
+          "error/error_050.webp": {
+            "file": "error/error_050.png",
+            "video_frame": 49,
+            "decoded_sha256": "8d50e1114a9b8323204e7b2380ef2697b1e894e82df290b7423203e3f7e0ccbe",
+            "sha256": "9cb486bfa8278aaca4aa3ce68597b2e7959d138330c84d35a29f69a038cb6606"
+          },
+          "error/error_052.webp": {
+            "file": "error/error_052.png",
+            "video_frame": 51,
+            "decoded_sha256": "f25753ea9766c0da959f9252c23fe0d89524ccd58720e5193e2e1ca95b6383f8",
+            "sha256": "4e573c8c1b154927389fb89e1d2e16c29f549a915228c96098050217e492acf0"
+          },
+          "error/error_054.webp": {
+            "file": "error/error_054.png",
+            "video_frame": 53,
+            "decoded_sha256": "553b19bf910a6f755f05a92629ff04b7a651f71fc7937019c47ec151269241b0",
+            "sha256": "d0b9b17aa2ba7bbabe4a2cb0d1e6043371ada7c471e4c4e7b30b2614a3615146"
+          },
+          "dragging/dragging_066.webp": {
+            "file": "dragging/dragging_066.png",
+            "video_frame": 113,
+            "decoded_sha256": "b8a7693dc2278c3a8420bf4209200c33934f50f11b763067ff461238996786e5",
+            "sha256": "3642ec413e250d9eda01e21bfcaa42f9a6a81a35444665bb2f97efd8a660f6ef"
+          },
+          "dragging/dragging_068.webp": {
+            "file": "dragging/dragging_068.png",
+            "video_frame": 115,
+            "decoded_sha256": "84720532380c154379529a03c674f0539afa9e5de4c91350fda40b2e4b9f696e",
+            "sha256": "02b6d2f4df859a419910254b3b42638d3c9bed7aa6b4b0cd7ffe1a9b07f637c9"
+          },
+          "dragging/dragging_070.webp": {
+            "file": "dragging/dragging_070.png",
+            "video_frame": 117,
+            "decoded_sha256": "fe667223571c7a9981c1f5429ede3bb2cb4e2fb63f89fdc4cdb1c76c29c16e8d",
+            "sha256": "31c4af53dff86dc9f4fcf59a7c1f5b08c4eec82c9c83f520012f3d9c489b293f"
+          },
+          "dragging/dragging_072.webp": {
+            "file": "dragging/dragging_072.png",
+            "video_frame": 119,
+            "decoded_sha256": "4c39208741dffd8aeb49d4422dfa47d546673b2f96378436109184dbe3921e01",
+            "sha256": "d26f9e0fa45c1c34c7e989e4e61029276baa314bb2fe9a7ca43e06713996c6d3"
+          },
+          "idle_yawn/idle_yawn_148.webp": {
+            "file": "idle_yawn/idle_yawn_148.png",
+            "video_frame": 147,
+            "decoded_sha256": "6f11a7830c5a60a70865d9d71c8bd54639b812e06d5f85c802c07b156aa6f7a4",
+            "sha256": "2e697f5f168df8b5850acc32b09422bbef1645a66e4ec8074dff0976ed460b1e"
+          },
+          "idle_yawn/idle_yawn_150.webp": {
+            "file": "idle_yawn/idle_yawn_150.png",
+            "video_frame": 149,
+            "decoded_sha256": "0ff31f1bb8e4256c0a7b921213cafb09638be386ecccc62c276bc8f91f6c41aa",
+            "sha256": "1b16ae7a294b57f43735bce55f86953bf5728847f2660097b41ed9c29c623ae1"
+          },
+          "idle_yawn/idle_yawn_152.webp": {
+            "file": "idle_yawn/idle_yawn_152.png",
+            "video_frame": 151,
+            "decoded_sha256": "dd429997ed89ca3b74d1a7a6eb6529a80e19eac74c2895f1e5ccb114a22e5b49",
+            "sha256": "948c1b6c2a5c7738e040cfa145f34512b3f6f99a5763766bdde9c1e0fb382418"
+          },
+          "idle_yawn/idle_yawn_154.webp": {
+            "file": "idle_yawn/idle_yawn_154.png",
+            "video_frame": 153,
+            "decoded_sha256": "596cfbe546b58e5e73f8e3aa9b36ce3ea283569f8ea0cbc399aaa02086e0da0c",
+            "sha256": "0fb521904c0c14d1302065af7ef782b8d35d4f91087e93085041858f13b2b60f"
+          }
+        }
+      },
       "full_unique_frames_per_clip": {
         "idle": 11,
         "thinking": 3,
@@ -528,74 +826,26 @@
         "thinking/thinking_110.webp": "c7e3d88ee360e09f6acc276bf850517fbdb0ae38effb8362461d242b94a21ecd",
         "thinking/thinking_112.webp": "c1a8ee3037510f23d1ad6ac40a2f474f5f6336b7fe365349509632e4ac3d1e1b",
         "thinking/thinking_114.webp": "c5bc23d1ac6282ede453341696d1d9aefb1b970c74f3b3cc0246965ca377e7f9",
-        "thinking/thinking_116.webp": "3b549402828a1912fbc8ccb9914042959fc3b86349640f1d6f592f7fbac8af64",
-        "thinking/thinking_118.webp": "0c52409ded94da98a30e35c279c028d929db7ed7aec9073437ff39e6bf98b18f",
-        "thinking/thinking_120.webp": "de42cdae93e0e67bb32f1b52890ae2dc2c761e00e141cf1df1afd08dfdea6881",
-        "thinking/thinking_122.webp": "6862cefe22669748e089ca396d18ed3e476940de995066708d29ea6c719f9191",
-        "thinking/thinking_124.webp": "a1657bd86f05bf598eb17db100023983784140c36bfa9acd05c3f868e300c460",
-        "thinking/thinking_126.webp": "cf29168d847e3b4b5ae190a684f44d601007765e0539d415cd7569c6d8c01c4a",
-        "thinking/thinking_128.webp": "d432a51b59120d9124c81622e1a906d30ab2a45336d16a78ffda9b6a32bc2fcb",
-        "thinking/thinking_130.webp": "5ccef55788a1d7914b5253aec0fb4893400b2a609903281dd3b28d4210ef1480",
         "working/working_108.webp": "9c3157008235d809c37f8d6cb3667325297ce534f09b2959ed5f5ce798c27038",
         "working/working_110.webp": "814463b2ff6f8071919e5dcc044f9ae9d7f624ace43f19f82fbe36fc5c986ee9",
         "working/working_112.webp": "3c6b2f05d73742eba4365dae43481ed17c0c36c42a24a759dbba9b7944e8f9ef",
         "working/working_114.webp": "ace34a0122717405f95355bf97767f304be302b4386193bf8b6c1e4ebdf6c460",
-        "working/working_116.webp": "4c0163c4e4fdfdf229826948ffb1888407b7de4125ba1d9abdf49a18d434f300",
-        "working/working_118.webp": "3e215d29ed59e058c1f27e66b9ac271d120809e293f1265c1be6049e36df350f",
-        "working/working_120.webp": "d02f41088fb4b6bfcf65f1614955f1c1cb68fa43cf49df65299d2be525ee88c1",
-        "working/working_122.webp": "2cc6cd8fb00b90744f2c2396979dd4e3f2dbee991db61e11ea48fc01e3c3563c",
-        "working/working_124.webp": "354cd478a4dac5c8ba6e2b22196f6604877404cbe0d939568b81ace714ef9f41",
-        "working/working_126.webp": "292d052d3323edb97b01e69f41345062e30fb4b4fa09caa0b1aa68d216690c75",
-        "working/working_128.webp": "00fbe0bffe4e955b77fda5ff10767ccccebe4a43781c3e7afdf423e571690018",
-        "working/working_130.webp": "cecd89d4adea889e9d70e2f8dec5ded67a4f191148b071f70b3f576445974290",
         "success/success_108.webp": "eb4e67ed86ad46ecb31397668c8502d2fa46bc467798d19931c446cec25fa03d",
         "success/success_110.webp": "5aa7bcb4d8d00f1a92a0de4d9bb6e16ba055e1f1e3f2ad0a112d13dbf11aa595",
         "success/success_112.webp": "7e5f554a0133ac4c7d33a409b319e6d5ad8cd0ec12b5bcb7831d147a23d9c690",
         "success/success_114.webp": "12b0e37186c91a565aa686b97fe66d348846edc9b1fe007a0afce1d67f9d9177",
-        "success/success_116.webp": "e3142690745e8f8004b89eb6210085d850d27bc42922827e6a7b399dfc7bf380",
-        "success/success_118.webp": "434c491f9665cb26af1d968b80e60958934b46d3f7e508fa23e0c8a73906c55b",
-        "success/success_120.webp": "0e7e48fc841cfa7205f493621428ad54505741446d33271cd4602a904a6d7a85",
-        "success/success_122.webp": "289a97de04535d5eb8f79fb88e318e51f00a4dfc5efe5670c4b3445f2d5eb007",
-        "success/success_124.webp": "cd3e129046b990df4c214d0109a3df17204bbac0845a92999110fc9b75716fe8",
-        "success/success_126.webp": "672e808c03b3bfe1167552c127cfc180481d0c6dbd59579f9051568c8cd6a19e",
-        "success/success_128.webp": "fd3af5375f3fc6e6928abd05deb9898939326c886e6f63f07d5e0b37db858a0d",
-        "success/success_130.webp": "c672cbc99b0f6fcc18676873cb6faa3e57b3ec9201c9c32c473922cd3fa08825",
         "error/error_048.webp": "d309ff822d8fc43ed3986a68e73556ce4843d0e8fed114dde1f538fb277f2609",
         "error/error_050.webp": "ee17653befc5b33473ba85e25041e197f0f5ecc3e552ad61a0c793861ab62f2b",
         "error/error_052.webp": "a15c9bb00cd26e924e25a3399303444d5a7a105a681f423824b2e654b91914e0",
         "error/error_054.webp": "d33f35e97ddcfec40ff26d94dd9bb1655ee1f3b29a0b012a4c00a5974712f3c2",
-        "error/error_056.webp": "f877a57b703e1d9766e0b62023a7009be7659ec541b9ceff4d531f14f200146e",
-        "error/error_058.webp": "854e2421e833cc90d8e67b558538c3d99953f26539d9c9b51b7431010e637fd1",
-        "error/error_060.webp": "ff5d86270de7d8f413d4980994280519fb6b238e5c07f4c9560b35583623e8db",
-        "error/error_062.webp": "819dbc0fa44beb41df61356a881a90ff1959bd65bdd3a1713ab7b99b43e93b13",
-        "error/error_064.webp": "8fdaecb222efaa02e83be140053dabdf4d07434410fee65b53dd0ef59a0776d1",
-        "error/error_066.webp": "53d9a93b78375d78239a3de576bce000537ffae198ef7fb47d8989495ddf4312",
-        "error/error_068.webp": "380d891d8793426a6ed0ba86765bc4c1fe5d00773142c9f084bad10571cc0333",
-        "error/error_070.webp": "28fab7bdc54b2bdaef25013d418338b4295b7c5b6c093b01d3ddde65ab79a58f",
         "dragging/dragging_066.webp": "5940bd1ebe1eb4baff8468171311b3e29aa74a16b518de3f3b5be4353b07b7a0",
         "dragging/dragging_068.webp": "f2b2a9ab0096c33dcc661c7d7dffca84f8d0efb9713afa396b456b5a36c1dffc",
         "dragging/dragging_070.webp": "bbe83467a0daaf0ecefccb2863fcf2d718a407dd0535b86806cb54878f82f27a",
         "dragging/dragging_072.webp": "06fa41052a9a13735e19f295f845a5516514c1c5fc7ca502e0d474367eae5be7",
-        "dragging/dragging_074.webp": "eb08e94dd573d3f771808be7df2ee01e65b4135442a9475329fff7208d92a0ae",
-        "dragging/dragging_076.webp": "b47e232f34d9b292592aa647b3c2373de53273da67663983d58df3255a85b5b2",
-        "dragging/dragging_078.webp": "a139a3acbf38461360ff725ba6433f3fcad76d43b9734a40a4f5bacb4a7c23be",
-        "dragging/dragging_080.webp": "220ced02fa59682c40700e75e4d2ce20c3f3cb9c6c4e1108f5d577dce350787a",
-        "dragging/dragging_082.webp": "958e0850ba090c825a5329c85c10e31db4332b8532f4216bbe2c520b34ad86d9",
-        "dragging/dragging_084.webp": "f31f8937ef484e5fb7461dccfbea9578092dbe672d2bde4c8610c352e884a8a2",
-        "dragging/dragging_086.webp": "c6798531ed22927e99bdc7d52fd8b503d552398a17b39d11738bb508d466a067",
-        "dragging/dragging_088.webp": "524583d696bda71f0c9a25995642919f22e2faa664d1555baae77d1bbfd5ee5d",
         "idle_yawn/idle_yawn_148.webp": "beb14a031bac844ca697eb3f6766d1c316df21d6bed88e9ff3caad423633a910",
         "idle_yawn/idle_yawn_150.webp": "bf2a326541ee2b7e5f1b8ab518823ea6689f98c31567631db3f9041d0fd36a5a",
         "idle_yawn/idle_yawn_152.webp": "cd493554f4e4d4055a758c615f8d97763b3ce3309fd659c57c553103291ddea6",
-        "idle_yawn/idle_yawn_154.webp": "879f0b280d6494c56ac25d6ddf2d6845483de0a817524885d1a25cb4e4ae2294",
-        "idle_yawn/idle_yawn_156.webp": "f99ba7f1cc10b63ba0970b06d7dc442e340ad45ed084341222b53a3761ba894f",
-        "idle_yawn/idle_yawn_158.webp": "6224b52c0d012d37ec40bbc569ee41a808199bbb26d48989363294cfd4575281",
-        "idle_yawn/idle_yawn_160.webp": "c22a1dd27943cc603d86cff6e60bf1ad2f9d43c13407652097c5bcff43dadacc",
-        "idle_yawn/idle_yawn_162.webp": "df04c35e1bf8094cfc24734668c8cd5d11adf50a9baf1022c25ac0afa3015db6",
-        "idle_yawn/idle_yawn_164.webp": "b6d527b1d93a9a34c35ef1ef210bb185dac1790dfa3cc5dc37823e4992c446bc",
-        "idle_yawn/idle_yawn_166.webp": "c7ffa449808ee2713033d6bd521435d63abf364b20e8510340addb92516d7667",
-        "idle_yawn/idle_yawn_168.webp": "c16840c299a1dc3f26f533dcf5f1130460de5a29fbe735b580a0cd372cc515c2",
-        "idle_yawn/idle_yawn_170.webp": "12d4eb265595f9d95dcec23671859ce484b91cf08033f1b3e910b627b18e33c2"
+        "idle_yawn/idle_yawn_154.webp": "879f0b280d6494c56ac25d6ddf2d6845483de0a817524885d1a25cb4e4ae2294"
       },
       "source_frames": {
         "full": {
@@ -753,64 +1003,64 @@
       },
       "files": {
         "view_zoom.eaf": {
-          "bytes": 404707,
-          "sha256": "24537e3562cb3663421357a41cdd3e1bd4cf8eeda81a009940343ef3bf16b6d7"
+          "bytes": 452799,
+          "sha256": "5b086269cbbf85414174a1d78ee1535cca3d23dcdf0a04e4b472f2de30477b56"
         },
         "idle.eaf": {
-          "bytes": 191246,
-          "sha256": "f5cae380be217a5c6cd65588e591aa8b61acc7330937f45f4d9f0c36c4ed3d76"
+          "bytes": 137126,
+          "sha256": "e4f2169537ad6a43597c6598e6bbe2e22158c34f6344c72bc42d1a57892e6c0a"
         },
         "thinking.eaf": {
-          "bytes": 53102,
-          "sha256": "dcb92a66db23ea885970ca122d3e7a1d9864ace22f48bcaced2613520e7835a7"
+          "bytes": 38637,
+          "sha256": "bbd588f84983aabad833cc70508a0a43ac4dbcf472efa5e12e0b73a1aa4cd5c3"
         },
         "working.eaf": {
-          "bytes": 59061,
-          "sha256": "4bb26c0c16216a54270e2f89e4162bd9d8df4c1389686beba9c46a1d34f86c23"
+          "bytes": 40826,
+          "sha256": "87167651787bc7081ee756212b27f533475229f740f5a464cc2d422017afb8bb"
         },
         "success.eaf": {
-          "bytes": 56191,
-          "sha256": "d9784429549d99d36cf66e8fc295f6c9a8517e57a9d3d0bf6f7a9b9cc5093978"
+          "bytes": 39398,
+          "sha256": "1e96818d1c6c3edb7c4031f4af12e611933d5e10493cdee1c00f64864c0162ae"
         },
         "error.eaf": {
-          "bytes": 52253,
-          "sha256": "74dfdf80c86b04eab7df94bcf08150c190c7f22782bad2602038a2eb64d732b3"
+          "bytes": 37613,
+          "sha256": "9be92c86a8b3094b72fedb591a3d152aa143075218152afac69cf1a609414474"
         },
         "dragging.eaf": {
-          "bytes": 54191,
-          "sha256": "99e0278144872c80f837b29cfb227b179b7103224e455fd37ae6e42155f84fd9"
+          "bytes": 37002,
+          "sha256": "988fca0f6f5e2fcf86cb1737c837b86ae076b63e5b2fff8ac7808c133a0fe5f5"
         },
         "idle_yawn.eaf": {
-          "bytes": 51776,
-          "sha256": "caa926c89b318d06d25e8cad000198c1a5987ab0400f113cc774be9756311c9e"
+          "bytes": 36364,
+          "sha256": "d070009c4fb6539cace82fb9bed6e1390ea35b0394b50d1dd1c9cebfc91b0ad8"
         },
         "face_idle.eaf": {
-          "bytes": 276662,
-          "sha256": "5f98de38c6996b5bd7e51d3e213d70e1bfe2fc0c0e1f158cc8fc880c74115d94"
+          "bytes": 334857,
+          "sha256": "53b5ef3e505d056a64ce843a6024803e6ae9cdd55c382a56c9df7ce67e8f8cb7"
         },
         "face_thinking.eaf": {
-          "bytes": 73218,
-          "sha256": "b03e853c4afc006f5d8d2cbe5e7d3559a5140be5857554754358c87d8ac01a0e"
+          "bytes": 88753,
+          "sha256": "ec2861bc1d53147d269fde796cd09c671b9136598e6aa55545189e9cb63f18ee"
         },
         "face_working.eaf": {
-          "bytes": 76473,
-          "sha256": "cd0aea1ae2654e8af3c9746e792e500e202ea2af42a31eb4d92ff94f33a66200"
+          "bytes": 89456,
+          "sha256": "f86fe3be9aa41876915bb374bfeecec8bc982bd599e285835c3b2132aef7c4d5"
         },
         "face_success.eaf": {
-          "bytes": 71447,
-          "sha256": "cfa703ef62426f0ba27082e46d99693cb43116a19c5d295b078a302d9677487a"
+          "bytes": 83437,
+          "sha256": "df1dd2f75706093b8740ae53fa2f3ba6568f0db3ecfe9cd695681c7e46eaf821"
         },
         "face_error.eaf": {
-          "bytes": 78862,
-          "sha256": "558fd23cec67099544dc339eb8e5a808e43859b46a0b89a3b5b3deda46faa022"
+          "bytes": 92480,
+          "sha256": "ec91ed965f163344aaddb43c4bbeffb2cd863683bf0de0b2f9ef04451d21cf39"
         },
         "face_dragging.eaf": {
-          "bytes": 73149,
-          "sha256": "adf3e654c1580cdc19f7818628d1a7b50231dff8f247361945e0e75e9fe6b1f5"
+          "bytes": 85014,
+          "sha256": "bb85f5c26f1fc132788a3222005476a99f73231aff2399d663aa9403da966649"
         },
         "face_idle_yawn.eaf": {
-          "bytes": 76037,
-          "sha256": "0de8b33bab43e4488f258928e9684453337f169d7d71934fab0b60ce03edbda1"
+          "bytes": 93955,
+          "sha256": "544290fc384bcbc0e8296a6a23658cbadcb4d62efc1f838ca245edf859a46b2a"
         }
       }
     },

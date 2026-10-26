@@ -62,19 +62,41 @@ def camera_frame(image, viewport, sprite_size, progress, focus=FACE_CENTERS["idl
                            Image.Resampling.BICUBIC)
 
 
-def build(source_dir, assets_dir):
+def build(source_dir, assets_dir, enhanced=None, resolution_filter=None):
     provenance = json.loads((assets_dir / "source.json").read_text(encoding="utf-8"))
     output = assets_dir / "closeup"
     output.mkdir(exist_ok=True)
     manifest = {"repository": provenance["repository"], "commit": provenance["commit"],
                 "face_centers": FACE_CENTERS, "face_height": FACE_HEIGHT,
                 "transition_ms": TRANSITION_MS, "profiles": {}}
+    previous = json.loads((output / "source.json").read_text(encoding="utf-8")) if (output / "source.json").exists() else {}
+    if not enhanced and resolution_filter in (None, "360_360") and previous.get("profiles", {}).get("360_360", {}).get("enhancement"):
+        raise ValueError("Pass --enhanced to preserve the 360x360 restored source quality")
+    if resolution_filter and (output / "source.json").exists():
+        manifest = json.loads((output / "source.json").read_text(encoding="utf-8"))
+    enhancement = json.loads((enhanced / "manifest.json").read_text(encoding="utf-8")) if enhanced else None
+    if enhancement and any(enhancement[key] != provenance["source_assets"][key]
+                           for key in ("repository", "commit", "crop")):
+        raise ValueError("Enhanced frames must use the same pinned video source and crop")
     for resolution, sprite_size in PROFILES.items():
+        if resolution_filter and resolution != resolution_filter:
+            continue
+        quality = enhancement if resolution == "360_360" else None
+        def load_source(path):
+            if quality:
+                record = quality["frames"][path]
+                file = enhanced / record["file"]
+                if hashlib.sha256(file.read_bytes()).hexdigest() != record["sha256"]:
+                    raise ValueError(f"Enhanced frame differs from provenance: {path}")
+                return Image.open(file)
+            return Image.open(source_dir / "assets/pet" / path)
+
         width, height = map(int, resolution.split("_"))
         viewport = (min(width, 400), min(height - 40, 320))
         if width > 512:
             sprite_size = (360, 300)
-        view_colors = 16
+        view_colors = 24 if quality else 16
+        full_colors = 24 if quality else 64
         original = provenance["profiles"][resolution]
         originals, full, face = {}, {}, {}
         for clip in CLIPS:
@@ -84,18 +106,22 @@ def build(source_dir, assets_dir):
                 # Complete open -> closed -> open blink, not a short open-eye excerpt.
                 paths = list(BLINK_SOURCES)
                 expected_hashes.update(BLINK_SOURCES)
+            if quality:
+                paths = [path for path in paths if path in quality["frames"]]
+                if len(paths) < 2:
+                    raise ValueError(f"Missing enhanced motion: {clip}")
             originals[clip] = paths
             full[clip], face[clip] = {}, {}
             for path in paths:
                 source_path = source_dir / "assets/pet" / path
                 if hashlib.sha256(source_path.read_bytes()).hexdigest() != expected_hashes[path]:
                     raise ValueError(f"Upstream frame differs from recorded provenance: {path}")
-                with Image.open(source_path) as image:
-                    full[clip][path] = encode_frame(image, sprite_size)[0]
+                with load_source(path) as image:
+                    full[clip][path] = encode_frame(image, sprite_size, full_colors)[0]
                     face[clip][path] = encode_frame(camera_frame(image, viewport, sprite_size, 1, FACE_CENTERS[clip]),
                                                    viewport, view_colors)[0]
         # Use the first neutral loop frame for both camera endpoints and loops.
-        with Image.open(source_dir / "assets/pet" / originals["idle"][0]) as image:
+        with load_source(originals["idle"][0]) as image:
             zoom = [encode_frame(camera_frame(image, viewport, sprite_size, i / (VIEW_FRAMES - 1)), viewport, view_colors)[0]
                     for i in range(VIEW_FRAMES)]
         # Both directions share one EAF payload; firmware selects the segment.
@@ -103,7 +129,7 @@ def build(source_dir, assets_dir):
         # Reserve the complete idle blink in both views, then balance other clips.
         # Keep every source motion's original cadence by selecting contiguous frames.
         candidates = []
-        for count in (12, 10, 8, 6, 4, 3, 2):
+        for count in ((4, 3, 2) if quality else (12, 10, 8, 6, 4, 3, 2)):
             body_files, face_files, selected = {}, {}, {}
             for clip in CLIPS:
                 paths = originals[clip] if clip == "idle" else originals[clip][:count]
@@ -118,8 +144,9 @@ def build(source_dir, assets_dir):
         for body in candidates:
             for head in candidates:
                 files = {**transitions, **body[1], **head[2]}
-                if sum(map(len, files.values())) <= ANIMATION_BUDGET:
-                    score = (min(body[0], head[0]), body[0] + head[0], body[0])
+                if sum(map(len, files.values())) <= (1660 * 1024 if quality else ANIMATION_BUDGET):
+                    score = ((head[0], body[0], 0) if quality else
+                             (min(body[0], head[0]), body[0] + head[0], body[0]))
                     options.append((score, files, body, head))
         if not options:
             raise ValueError(f"{resolution}: camera resources exceed budget")
@@ -137,6 +164,8 @@ def build(source_dir, assets_dir):
         manifest["profiles"][resolution] = {
             "sprite_size": sprite_size, "viewport_size": viewport,
             "view_colors": view_colors,
+            "full_colors": full_colors,
+            **({"enhancement": quality} if quality else {}),
             "full_unique_frames_per_clip": {clip: len(set(paths)) for clip, paths in body[3].items()},
             "face_unique_frames_per_clip": {clip: len(set(paths)) for clip, paths in head[3].items()},
             "source_sha256": {path: hashlib.sha256((source_dir / "assets/pet" / path).read_bytes()).hexdigest()
@@ -155,13 +184,13 @@ def build(source_dir, assets_dir):
                 ImageDraw.Draw(screen).text((12, 12), "Dafeiyu / close-up", fill="white")
                 preview.append(screen)
                 durations.append(duration)
-            with Image.open(source_dir / "assets/pet" / originals["idle"][0]) as image:
+            with load_source(originals["idle"][0]) as image:
                 camera = [encode_frame(camera_frame(image, viewport, sprite_size, i / (VIEW_FRAMES - 1)),
                                        viewport, view_colors)[1] for i in range(VIEW_FRAMES)]
             for rendered in camera:
                 append_preview(rendered, 1000 / VIEW_FPS)
             for path in head[3]["idle"] * 2:
-                with Image.open(source_dir / "assets/pet" / path) as image:
+                with load_source(path) as image:
                     append_preview(encode_frame(camera_frame(image, viewport, sprite_size, 1), viewport, view_colors)[1], 1000 / 12)
             for rendered in reversed(camera):
                 append_preview(rendered, 1000 / VIEW_FPS)
@@ -184,5 +213,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--assets", type=Path, default=Path(__file__).resolve().parents[1] / "assets/dafeiyu")
+    parser.add_argument("--enhanced", type=Path, help="Lossless 4x frame directory from prepare_dafeiyu_quality.py (360 only)")
+    parser.add_argument("--resolution", choices=list(PROFILES), help="Regenerate only this profile")
     args = parser.parse_args()
-    build(args.source, args.assets)
+    build(args.source, args.assets, args.enhanced, args.resolution)

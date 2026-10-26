@@ -9,6 +9,19 @@
 预览为资源效果示意，实际板端还会叠加原有状态图标和字幕。
 现有素材来自二维动画帧，效果通过预渲染取景、裁剪和放大实现。
 
+### 360×360 清晰度优化
+
+这一档改为从 `PC2005-cloud/dsh-pet` 的原始 VP9 视频直接解码，避免 WebP quality=68 的再次压缩。
+离线使用 waifu2x-ncnn-vulkan 的 cunet 模型、降噪等级 2、4 倍放大重建线条，
+中间帧保存为无损 PNG，再生成屏幕实际尺寸的 EAF。全身、眨眼、其他表情及镜头过渡采用同一处理流程。
+处理后使用 24 色，减少原先 16 色造成的色块；不使用抖动来伪造颜色，因此不会额外引入颗粒。
+完整眨眼和过渡帧数保持不变，超分辨率只在电脑导入素材时运行，不增加 ESP32 的运行时推理负担。
+
+![左：旧资源；右：重建后的 360×360 资源](./assets/dafeiyu/closeup/quality-comparison.png)
+
+源视频本身只有 640×360，脸部区域更小，因此这是降噪与线条重建，不是恢复真实的高分辨率原画。
+320×240 和 1024×600 两档仍使用之前的素材。
+
 ## 使用和烧录
 
 在 `idf.py menuconfig` 的 **Example Configuration** 保持以下选项开启：
@@ -67,7 +80,7 @@ idf.py -p COMx flash monitor
   1024×600 使用居中的 400×320 画布、360×300 全身素材，以控制内存及 Flash 占用。
 
 特写镜头按七组动作分别设置面部中心，避免抬手、低头时失去脸部。
-全身保留 64 色，特写及过渡使用 16 色，将资源优先用于完整眨眼与更多过渡帧。
+360×360 全身、特写及过渡均使用 24 色重建素材；其他两档全身保留 64 色，特写及过渡使用 16 色。
 为保留原有 **3000 KiB** 资源分区，开启本功能时使用另一套较短的动作循环；
 原有全身资源保留，关闭本选项并完整烧录即可恢复原先的循环长度。
 实际每组帧数和 SHA-256 记录在 `assets/dafeiyu/closeup/source.json`。
@@ -80,7 +93,7 @@ idf.py -p COMx flash monitor
 | 屏幕资源 | 待机帧数；其余全身/特写不同帧数 | 分区镜像字节数 |
 | --- | --- | --- |
 | 320×240 | 11；6 / 6 | 3,067,218 |
-| 360×360 | 11；3 / 3 | 3,017,916 |
+| 360×360 | 11；3 / 3 | 3,057,258 |
 | 1024×600 | 11；2 / 2 | 3,038,142 |
 
 三档均小于 3,072,000 字节。更换字体/图标后由构建脚本重新检查容量。
@@ -105,13 +118,26 @@ idf.py -p COMx flash monitor
 调整取景、时长或颜色后重新生成素材：
 
 ```powershell
-python examples/agent/chatbot/tools/import_dafeiyu_closeup.py --source SOURCE_DIR
+python examples/agent/chatbot/tools/import_dafeiyu_closeup.py --source SOURCE_DIR --enhanced ENHANCED_DIR
 ```
 
 `SOURCE_DIR` 是原先的 `QCYTSN/dsh-dafeiyu` 源码目录，提交版本见原资源 `source.json`。
 生成器检查源帧 SHA-256，只读取图片，需要 Pillow。日常固件打包只使用已提交素材，
 不需要 Pillow、联网取图或运行上游代码。改变帧数/时长时，还需同步修改
 `character_view_state.hpp` 中的 `VIEW_FRAMES` / `TRANSITION_MS`。
+
+`ENHANCED_DIR` 用以下命令准备。需要包含固定提交的 dsh-pet Git 仓库、支持 libvpx-vp9 的 FFmpeg，
+以及 [waifu2x-ncnn-vulkan 20220728](https://github.com/nihui/waifu2x-ncnn-vulkan/releases/tag/20220728)
+及其 `models-cunet` 目录；本次在 Intel Iris Xe 上离线处理，不上传图片。
+
+```powershell
+python examples/agent/chatbot/tools/prepare_dafeiyu_quality.py --source SOURCE_DIR --dsh-source DSH_GIT_DIR --output ENHANCED_DIR --ffmpeg FFMPEG_EXE --upscaler WAIFU2X_EXE
+python examples/agent/chatbot/tools/import_dafeiyu_closeup.py --source SOURCE_DIR --enhanced ENHANCED_DIR --resolution 360_360
+```
+
+准备脚本检查原视频 SHA-256，记录精确的视频帧号、模型/工具及重建 PNG 的摘要；
+这些记录随资源保存在 `closeup/source.json` 的 `enhancement` 字段。
+生成器检查重建 PNG 摘要，且禁止在缺少 `--enhanced` 时意外退回旧的 360×360 图源。
 
 ## 验证边界
 
