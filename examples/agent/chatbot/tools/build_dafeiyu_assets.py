@@ -57,10 +57,13 @@ def build_files(component, assets, resolution, closeup=False, smooth=False):
     config = read_json(component / resolution / "config.json")
     layout = read_json(component / resolution / "layout.json")
     # The original layout mirrors one eye into a pair. A complete character must
-    # instead be drawn once, in the center, below the status / subtitle area.
+    # instead be drawn once in the center. The close-up bundle is re-cut to the
+    # full 360x360 panel (see mask_dafeiyu_circle.py), so it has to be centered on
+    # the panel; every other bundle keeps its 40 px status strip at the top.
+    full_panel = closeup and resolution == "360_360"
     for obj in layout:
         if obj.get("name") in ("eye_anim", "emerg_dlg"):
-            obj.update(align="GFX_ALIGN_CENTER", x=0, y=20)
+            obj.update(align="GFX_ALIGN_CENTER", x=0, y=0 if full_panel else 20)
             obj["anim"] = {"mirror": "false"}
     files, emojis = {}, []
     resource_dir = assets / "closeup" / resolution if closeup else assets / resolution

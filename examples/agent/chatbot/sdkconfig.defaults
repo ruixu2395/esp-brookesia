@@ -69,6 +69,14 @@ CONFIG_BROOKESIA_AGENT_XIAOZHI_ENABLE_AUTO_REGISTER=n
 CONFIG_EXAMPLE_EXPRESSIONS_ENABLE_EMOTE=y
 CONFIG_MMAP_FILE_NAME_LENGTH=32
 
+# ESP32-S3 N32R16: 32 MB flash, so the 20 fps close-up bundle fits its 12 MiB
+# anim_icon partition (partitions_32m.csv). Set the board back to N16R8 by
+# removing these three lines (board defaults restore 16 MB + partitions_16m.csv).
+CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions_32m.csv"
+CONFIG_PARTITION_TABLE_FILENAME="partitions_32m.csv"
+CONFIG_EXAMPLE_DAFEIYU_SMOOTH_32M=y
+
 # H264 (Save RAM and Flash)
 CONFIG_ESP_H264_DECODER_IRAM=n
 CONFIG_VIDEO_DECODER_SW_H264_SUPPORT=n
