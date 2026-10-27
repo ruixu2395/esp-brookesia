@@ -8,6 +8,17 @@ import unittest
 
 
 class NativePetStateTest(unittest.TestCase):
+    @unittest.skipUnless(shutil.which('g++'), 'g++ is needed for the WiFi startup policy test')
+    def test_wifi_startup_does_not_interrupt_reconnect(self):
+        root = Path(__file__).resolve().parents[2]
+        with tempfile.TemporaryDirectory() as folder:
+            executable = Path(folder) / 'wifi-startup-test.exe'
+            subprocess.run(['g++', '-std=c++17', '-Wall', '-Wextra', '-Werror',
+                            '-I', str(root / 'main'), str(Path(__file__).with_name('wifi_startup_policy_test.cpp')),
+                            '-o', str(executable)], check=True, capture_output=True, text=True)
+            result = subprocess.run([str(executable)], check=True, capture_output=True, text=True)
+            self.assertIn('checks passed', result.stdout)
+
     @unittest.skipUnless(shutil.which('g++'), 'g++ is needed for the native character view test')
     def test_character_view_commands_transitions_and_arbitration(self):
         root = Path(__file__).resolve().parents[2]

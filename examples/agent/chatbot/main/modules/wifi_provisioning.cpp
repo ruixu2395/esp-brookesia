@@ -8,6 +8,7 @@
 #include "brookesia/service_manager.hpp"
 #include "brookesia/service_helper/network/wifi.hpp"
 #include "wifi_provisioning.hpp"
+#include "wifi_startup_policy.hpp"
 
 /* The following WiFi credentials are used for CI test. Please ignore them if you are not running CI test. */
 #if defined(CI_TEST_WIFI_2_4G_AP1_SSID) && defined(CI_TEST_WIFI_2_4G_AP1_PSW)
@@ -22,6 +23,7 @@ using WifiHelper = service::helper::Wifi;
 
 constexpr uint32_t WIFI_DO_SOFTAP_PROVISION_START_TIMEOUT_MS = 1000;
 constexpr uint32_t WIFI_DO_SOFTAP_PROVISION_STOP_TIMEOUT_MS = 1000;
+constexpr const char *PROVISION_GROUP = "chatbot_wifi_provisioning";
 
 static bool get_wifi_softap_params(WifiHelper::SoftApParams &softap_params);
 
@@ -30,6 +32,8 @@ bool WifiProvisioning::init(const Config &config)
     BROOKESIA_CHECK_FALSE_RETURN(!is_initialized_.load(), false, "Already initialized");
     BROOKESIA_CHECK_FALSE_RETURN(config.task_scheduler != nullptr, false, "Invalid task scheduler");
     BROOKESIA_CHECK_FALSE_RETURN(WifiHelper::is_available(), false, "WiFi service not available");
+    BROOKESIA_CHECK_FALSE_RETURN(config.task_scheduler->configure_group(
+        PROVISION_GROUP, {.enable_serial_execution = true}), false, "Failed to serialize provisioning tasks");
 
     auto &service_manager = service::ServiceManager::get_instance();
     auto binding = service_manager.bind(WifiHelper::get_name().data());
@@ -72,28 +76,25 @@ bool WifiProvisioning::start()
 #endif
     };
 
-    return config_.task_scheduler->post(std::move(run_connect_or_provision));
+    return config_.task_scheduler->post(std::move(run_connect_or_provision), nullptr, PROVISION_GROUP);
 }
 
 void WifiProvisioning::start_sta_connect_flow()
 {
-    auto post_reset_active_conn = [this]() {
+    const uint32_t generation = ++sta_generation_;
+    auto post_reset_active_conn = [this, generation]() {
+        if (generation != sta_generation_) return;
+        ++sta_generation_; // Invalidate the delayed fallback and queued old events.
         active_conn_.reset();
     };
 
-    auto post_reset_and_softap = [this]() {
-        active_conn_.reset();
-        start_softap_provision_flow();
-    };
-
-    auto on_sta_general_event = [this, post_reset_active_conn, post_reset_and_softap](
+    auto on_sta_general_event = [this, post_reset_active_conn](
     const std::string &, const std::string & event, bool) {
         if (event == BROOKESIA_DESCRIBE_TO_STR(WifiHelper::GeneralEvent::Connected)) {
             BROOKESIA_LOGI("WiFi connected");
-            config_.task_scheduler->post(post_reset_active_conn);
+            config_.task_scheduler->post(post_reset_active_conn, nullptr, PROVISION_GROUP);
         } else if (event == BROOKESIA_DESCRIBE_TO_STR(WifiHelper::GeneralEvent::Disconnected)) {
-            BROOKESIA_LOGW("WiFi disconnected, switching to SoftAP provisioning");
-            config_.task_scheduler->post(post_reset_and_softap);
+            BROOKESIA_LOGW("STA disconnected during startup; allow WiFi service retries before provisioning fallback");
         }
     };
 
@@ -118,6 +119,31 @@ void WifiProvisioning::start_sta_connect_flow()
     if (!start_result) {
         BROOKESIA_LOGE("Failed to trigger WiFi start: %1%", start_result.error());
         active_conn_.reset();
+        ++sta_generation_;
+        return;
+    }
+    BROOKESIA_CHECK_FALSE_EXIT(config_.task_scheduler->post_delayed(
+        [this, generation]() { check_sta_startup(generation); }, wifi_startup::GRACE_MS,
+        nullptr, PROVISION_GROUP), "Failed to schedule STA startup check");
+}
+
+void WifiProvisioning::check_sta_startup(uint32_t generation)
+{
+    if (generation != sta_generation_) return;
+    auto result = WifiHelper::call_function_sync<std::string>(WifiHelper::FunctionId::GetGeneralState);
+    const auto decision = wifi_startup::decide(result ? result.value() : "");
+    if (decision == wifi_startup::Decision::Wait) {
+        BROOKESIA_LOGW("STA startup still pending; defer provisioning fallback");
+        BROOKESIA_CHECK_FALSE_EXIT(config_.task_scheduler->post_delayed(
+            [this, generation]() { check_sta_startup(generation); }, wifi_startup::CHECK_MS,
+            nullptr, PROVISION_GROUP), "Failed to reschedule STA startup check");
+        return;
+    }
+    ++sta_generation_;
+    active_conn_.reset();
+    if (decision == wifi_startup::Decision::Provision) {
+        BROOKESIA_LOGW("Saved WiFi did not connect within startup grace period; starting provisioning");
+        start_softap_provision_flow();
     }
 }
 
@@ -138,7 +164,7 @@ void WifiProvisioning::start_softap_provision_flow()
     const std::string &, const std::string & event, bool) {
         if (event == BROOKESIA_DESCRIBE_TO_STR(WifiHelper::GeneralEvent::Connected)) {
             BROOKESIA_LOGI("WiFi connected via SoftAP provisioning");
-            config_.task_scheduler->post(post_stop_softap_provision);
+            config_.task_scheduler->post(post_stop_softap_provision, nullptr, PROVISION_GROUP);
         }
     };
 

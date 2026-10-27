@@ -99,10 +99,12 @@ extern "C" void app_main(void)
         }
 
         /* Start WiFi provisioning module */
-        WifiProvisioning::get_instance().init({
+        const bool wifi_initialized = WifiProvisioning::get_instance().init({
             .task_scheduler = backend_scheduler,
         });
-        WifiProvisioning::get_instance().start();
+        if (!wifi_initialized || !WifiProvisioning::get_instance().start()) {
+            BROOKESIA_LOGE("Failed to initialize or schedule WiFi startup");
+        }
 
         /* Start profiler */
         Profiler::get_instance().init({

@@ -39,11 +39,14 @@ private:
 
     // Start STA flow: subscribe → trigger Start → handle Connected/Disconnected events
     void start_sta_connect_flow();
+    void check_sta_startup(uint32_t generation);
     // Start SoftAP flow: subscribe → trigger SoftApProvisionStart → handle Connected event
     void start_softap_provision_flow();
 
     std::atomic<bool> is_initialized_{false};
     Config config_{};
+    // Accessed only on the serialized provisioning task group.
+    uint32_t sta_generation_ = 0;
     // Holds the active event subscription; reset() to unsubscribe
     std::shared_ptr<esp_brookesia::service::EventRegistry::SignalConnection> active_conn_;
     std::vector<esp_brookesia::service::ServiceBinding> service_bindings_;
