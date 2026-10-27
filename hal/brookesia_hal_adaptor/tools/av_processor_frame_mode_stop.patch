@@ -12,7 +12,7 @@ persistent stream-mode queue objects.
 @@ -124,7 +124,7 @@
      SAFE_CLEANUP(render->event_group, vEventGroupDelete);
  }
-
+ 
 -static void video_capture_cleanup(video_capture_t *capture)
 +static void video_capture_pipeline_cleanup(video_capture_t *capture)
  {
@@ -44,7 +44,7 @@ persistent stream-mode queue objects.
      }
 -    capture->vid_src = NULL;
  }
-
+ 
  static esp_capture_video_src_if_t *create_video_source(void *cam_config)
 @@ -510,6 +523,7 @@
          ret = capture->vid_src->set_fixed_caps(capture->vid_src, &fixed_caps);
@@ -78,7 +78,7 @@ persistent stream-mode queue objects.
 +        video_capture_pipeline_cleanup(capture);
          return ESP_FAIL;
      }
-
+ 
 @@ -549,7 +564,7 @@
          if (ret_thread != 0) {
              ESP_LOGE(TAG, "Failed to create capture worker thread");
@@ -104,7 +104,7 @@ persistent stream-mode queue objects.
 -    capture->vid_src = NULL;
 +    SAFE_CLEANUP(capture->vid_src, esp_gmf_oal_free);
      capture->aud_src = NULL;
-
+ 
      if (ret == ESP_OK) {
 @@ -613,7 +628,7 @@
          ESP_LOGE(TAG, "Invalid capture handle");

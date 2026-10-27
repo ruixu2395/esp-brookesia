@@ -12,11 +12,26 @@ endif()
 idf_component_register(
     SRCS ${SRCS}
     INCLUDE_DIRS "."
-    PRIV_REQUIRES esp_http_client esp_http_server esp_timer
+    # main/modules/display/display.cpp includes esp_lv_adapter.h directly.
+    # brookesia_gui_lvgl declares esp_lvgl_adapter as a *private* dependency, so its
+    # include directories are not propagated to main; require it explicitly here.
+    PRIV_REQUIRES esp_http_client esp_http_server esp_timer espressif__esp_lvgl_adapter
     EMBED_TXTFILES ${EMBEDDED_FILES}
 )
 
-littlefs_create_partition_image(littlefs_data ../littlefs FLASH_IN_PROJECT)
+# `littlefs_create_partition_image` is only defined when the joltwallet/littlefs
+# component is pulled into the build. That dependency is conditional (see
+# brookesia_hal_adaptor: it requires the storage device + littlefs Kconfig options),
+# so guard the call to avoid a hard configure error when littlefs is absent.
+if(COMMAND littlefs_create_partition_image)
+    littlefs_create_partition_image(littlefs_data ../littlefs FLASH_IN_PROJECT)
+else()
+    message(WARNING
+        "littlefs_create_partition_image is not available (joltwallet/littlefs not in build); "
+        "skipping littlefs_data image generation. Enable "
+        "BROOKESIA_HAL_ADAPTOR_ENABLE_STORAGE_DEVICE / *_FILE_SYSTEM_IMPL / *_ENABLE_LITTLEFS "
+        "if the littlefs partition is needed.")
+endif()
 
 set(ASSETS_PARTITION_NAME "anim_icon")
 set(ASSETS_BIN_NAME ${ASSETS_PARTITION_NAME})

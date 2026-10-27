@@ -9,7 +9,7 @@ first error. No public structure or generated board definition changes.
 +++ b/src/esp_board_periph.c
 @@ -6,6 +6,7 @@
   */
-
+ 
  #include <string.h>
 +#include <stdint.h>
  #include "esp_log.h"
@@ -18,7 +18,7 @@ first error. No public structure or generated board definition changes.
 @@ -17,6 +18,17 @@
  extern const esp_board_periph_desc_t g_esp_board_peripherals[];
  extern esp_board_periph_entry_t g_esp_board_periph_handles[];
-
+ 
 +/* Private runtime ownership: do not change the public/generated list layout. */
 +typedef struct {
 +    esp_board_periph_list_t base;
@@ -32,7 +32,7 @@ first error. No public structure or generated board definition changes.
 +
  /* Peripheral handle list */
  static esp_board_periph_list_t *periph_list = NULL;
-
+ 
 @@ -39,13 +51,20 @@
  /* Add new peripheral list entry */
  static esp_board_periph_list_t *add_periph_list(const char *name, const char *type, esp_board_periph_role_t role)
@@ -43,7 +43,7 @@ first error. No public structure or generated board definition changes.
 +    if (!entry) {
          return NULL;
      }
-
+ 
 +    esp_board_periph_list_t *list = &entry->base;
      list->name = strdup(name);
      list->type = strdup(type);
@@ -59,7 +59,7 @@ first error. No public structure or generated board definition changes.
 @@ -75,8 +94,13 @@
          ESP_BOARD_RETURN_ON_FALSE(list, ESP_ERR_NO_MEM, TAG, "Failed to create list entry for %s", name);
      }
-
+ 
 +    esp_err_t cleanup_error = periph_cleanup_error(list);
 +    ESP_BOARD_RETURN_ON_ERROR(cleanup_error, TAG, "Peripheral %s isolated; restart required", name);
 +
@@ -71,14 +71,14 @@ first error. No public structure or generated board definition changes.
          ESP_LOGI(TAG, "Reuse periph: %s, ref_count=%d", name, list->ref_count);
          return ESP_OK;
 @@ -93,10 +117,16 @@
-
+ 
  esp_err_t esp_board_periph_get_handle(const char *name, void **periph_handle)
  {
 +    if (periph_handle) {
 +        *periph_handle = NULL;
 +    }
      ESP_BOARD_RETURN_ON_FALSE(name && periph_handle, ESP_BOARD_ERR_PERIPH_INVALID_ARG, TAG, "Invalid args");
-
+ 
      /* Find list entry */
      esp_board_periph_list_t *list = find_periph_list(name);
 +    esp_err_t cleanup_error = periph_cleanup_error(list);
@@ -88,7 +88,7 @@ first error. No public structure or generated board definition changes.
                                "No handle found for %s on get handle", name);
      *periph_handle = list->periph_handle;
 @@ -105,6 +135,9 @@
-
+ 
  esp_err_t esp_board_periph_get_name_by_handle(void *periph_handle, const char **name)
  {
 +    if (name) {
@@ -98,14 +98,14 @@ first error. No public structure or generated board definition changes.
      /* Search through all peripheral list entries */
      esp_board_periph_list_t *list = periph_list;
 @@ -122,6 +155,9 @@
-
+ 
  esp_err_t esp_board_periph_ref_handle(const char *name, void **periph_handle)
  {
 +    if (periph_handle) {
 +        *periph_handle = NULL;
 +    }
      ESP_BOARD_RETURN_ON_FALSE(name && periph_handle, ESP_BOARD_ERR_PERIPH_INVALID_ARG, TAG, "Invalid args");
-
+ 
      esp_err_t ret = esp_board_periph_init(name);
 @@ -184,6 +220,9 @@
          list = add_periph_list(name, desc->type, desc->role);
@@ -114,13 +114,13 @@ first error. No public structure or generated board definition changes.
 +
 +    esp_err_t cleanup_error = periph_cleanup_error(list);
 +    ESP_BOARD_RETURN_ON_ERROR(cleanup_error, TAG, "Peripheral %s isolated; restart required", name);
-
+ 
      /* Set functions */
      handle->init = init;
 @@ -223,27 +262,40 @@
      esp_board_periph_list_t *list = find_periph_list(name);
      ESP_BOARD_RETURN_ON_FALSE(list, ESP_BOARD_ERR_PERIPH_NO_HANDLE, TAG, "No list entry found for %s", name);
-
+ 
 +    esp_err_t cleanup_error = periph_cleanup_error(list);
 +    ESP_BOARD_RETURN_ON_ERROR(cleanup_error, TAG, "Peripheral %s isolated; restart required", name);
 +
@@ -129,7 +129,7 @@ first error. No public structure or generated board definition changes.
          ESP_LOGW(TAG, "Peripheral %s not initialized", name);
          return ESP_OK;
      }
-
+ 
 +    ESP_BOARD_RETURN_ON_FALSE(list->ref_count > 0, ESP_ERR_INVALID_STATE, TAG,
 +                              "Peripheral %s has a handle but no reference", name);
 +    /* Missing callback leaves a known-live handle; no ownership has changed. */
@@ -141,7 +141,7 @@ first error. No public structure or generated board definition changes.
      /* Decrement reference count */
      list->ref_count--;
      ESP_LOGI(TAG, "Deinit peripheral %s ref_count: %d", name, list->ref_count);
-
+ 
      /* Only deinitialize if ref_count reaches 0 */
      if (list->ref_count == 0) {
 -        /* Check if deinit function exists */
@@ -193,7 +193,7 @@ first error. No public structure or generated board definition changes.
      const esp_board_periph_desc_t *desc = g_esp_board_peripherals;
      esp_err_t ret;
 +    esp_err_t first_error = ESP_OK;
-
+ 
      /* Initialize all peripherals in the list */
      while (desc && desc->name) {
          ret = esp_board_periph_init(desc->name);
@@ -208,13 +208,13 @@ first error. No public structure or generated board definition changes.
 -    return ESP_OK;
 +    return first_error;
  }
-
+ 
  esp_err_t esp_board_periph_deinit_all(void)
  {
      const esp_board_periph_desc_t *desc = g_esp_board_peripherals;
      esp_err_t ret;
 +    esp_err_t first_error = ESP_OK;
-
+ 
      /* Deinitialize all peripherals in the list */
      while (desc && desc->name) {
          ret = esp_board_periph_deinit(desc->name);

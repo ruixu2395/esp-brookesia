@@ -9,7 +9,7 @@ wrapper and slot dependencies. Generic camera error propagation changes DVP only
 @@ -5,6 +5,7 @@
   * See LICENSE file for details.
   */
-
+ 
 +#include <string.h>
  #include "esp_log.h"
  #include "dev_camera.h"
@@ -30,7 +30,7 @@ wrapper and slot dependencies. Generic camera error propagation changes DVP only
 +++ b/devices/dev_camera/dev_camera_sub_dvp.c
 @@ -6,6 +6,7 @@
   */
-
+ 
  #include <string.h>
 +#include <stdbool.h>
  #include "esp_log.h"
@@ -38,7 +38,7 @@ wrapper and slot dependencies. Generic camera error propagation changes DVP only
  #include "dev_camera.h"
 @@ -15,6 +16,14 @@
  #include "esp_video_device.h"
-
+ 
  static const char *TAG = "DEV_CAMERA_SUB_DVP";
 +
 +/* Keep stage and ownership private; dev_camera_handle_t remains unchanged. */
@@ -48,7 +48,7 @@ wrapper and slot dependencies. Generic camera error propagation changes DVP only
 +    bool video_closed;
 +    esp_err_t cleanup_error;
 +} dvp_camera_runtime_t;
-
+ 
  int dev_camera_sub_dvp_init(void *cfg, int cfg_size, void **device_handle)
  {
 @@ -44,7 +53,7 @@
@@ -63,7 +63,7 @@ wrapper and slot dependencies. Generic camera error propagation changes DVP only
 @@ -56,34 +65,50 @@
          goto cleanup;
      }
-
+ 
 -    handle->dev_path = ESP_VIDEO_DVP_DEVICE_NAME;
 +    handle->base.dev_path = ESP_VIDEO_DVP_DEVICE_NAME;
 +    handle->i2c_name = config->sub_cfg.dvp.i2c_name;
@@ -79,7 +79,7 @@ wrapper and slot dependencies. Generic camera error propagation changes DVP only
 +    }
      return -1;
  }
-
+ 
  int dev_camera_sub_dvp_deinit(void *device_handle)
  {
 -    dev_camera_handle_t *handle = (dev_camera_handle_t *)device_handle;
@@ -97,7 +97,7 @@ wrapper and slot dependencies. Generic camera error propagation changes DVP only
 +    if (handle->cleanup_error != ESP_OK) {
 +        return handle->cleanup_error;
      }
-
+ 
 -    dev_camera_config_t *cfg = NULL;
 -    esp_board_device_get_config_by_handle(handle, (void **)&cfg);
 -    if (cfg) {
@@ -126,5 +126,5 @@ wrapper and slot dependencies. Generic camera error propagation changes DVP only
 +    free(handle);
 +    return ESP_OK;
  }
-
+ 
  ESP_BOARD_SUBTYPE_ENTRY_IMPLEMENT(camera, dvp, dev_camera_sub_dvp_init, dev_camera_sub_dvp_deinit);

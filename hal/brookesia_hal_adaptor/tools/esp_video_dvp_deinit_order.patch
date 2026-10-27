@@ -9,15 +9,15 @@ Board Manager retry.
 +++ b/private_include/esp_video.h
 @@ -83,6 +83,7 @@
      uint8_t reference;                      /*!< video device open reference count */
-
+ 
      uint8_t inited : 1;                     /*!< video device is initialized */
 +    uint8_t destroying : 1;                 /*!< video device is being destroyed */
  };
-
+ 
  /**
 @@ -392,6 +393,18 @@
  struct esp_video *esp_video_device_get_object(const char *name);
-
+ 
  /**
 + * @brief Prevent new opens before destroying a video object.
 + *
@@ -39,7 +39,7 @@ Board Manager retry.
 @@ -308,6 +308,36 @@
      return NULL;
  }
-
+ 
 +esp_err_t esp_video_device_prepare_destroy(const char *name)
 +{
 +    struct esp_video *video;
@@ -78,15 +78,15 @@ Board Manager retry.
          }
      }
 -    _lock_release(&s_video_lock);
-
+ 
      if (!found) {
 +        _lock_release(&s_video_lock);
          ESP_LOGE(TAG, "Not find video=%s", name);
          return ESP_ERR_INVALID_ARG;
      }
-
+ 
      xSemaphoreTake(video->mutex, portMAX_DELAY);
-
+ 
 +    if (video->destroying) {
 +        xSemaphoreGive(video->mutex);
 +        _lock_release(&s_video_lock);
@@ -112,7 +112,7 @@ Board Manager retry.
  #if CONFIG_ESP_VIDEO_ENABLE_DVP_VIDEO_DEVICE
 @@ -577,6 +578,16 @@
  #endif /* CONFIG_ESP_VIDEO_ENABLE_MIPI_CSI_VIDEO_DEVICE */
-
+ 
  #if CONFIG_ESP_VIDEO_ENABLE_DVP_VIDEO_DEVICE
 +typedef struct dvp_video_destroy_state {
 +    esp_cam_sensor_device_t *sensor;
@@ -128,12 +128,12 @@ Board Manager retry.
  {
      esp_err_t ret = ESP_OK;
 @@ -610,15 +621,34 @@
-
+ 
  static esp_err_t destroy_dvp_video_device(void)
  {
 -    esp_video_cam_t cam;
      int dvp_ctlr_id = 0;
-
+ 
 -    ESP_RETURN_ON_ERROR(esp_video_device_common_get_video_cam(DVP_NAME, &cam), TAG, "Failed to get DVP video device camera");
 -    ESP_RETURN_ON_FALSE(cam.sensor, ESP_ERR_INVALID_STATE, TAG, "DVP sensor is NULL");
 -    ESP_RETURN_ON_ERROR(esp_sccb_del_i2c_io(cam.sensor->sccb_handle), TAG, "Failed to delete SCCB device");
@@ -165,6 +165,6 @@ Board Manager retry.
 +    }
      ESP_RETURN_ON_ERROR(esp_cam_ctlr_dvp_deinit(dvp_ctlr_id), TAG, "Failed to deinit DVP port");
 +    memset(&s_dvp_destroy_state, 0, sizeof(s_dvp_destroy_state));
-
+ 
      return ESP_OK;
  }

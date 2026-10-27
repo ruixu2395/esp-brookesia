@@ -41,7 +41,7 @@ and the same source must remain reusable after failed negotiation.
 @@ -96,6 +99,21 @@
      }
  }
-
+ 
 +/* ESP_CAPTURE_FMT_ID_YUV422 means YUYV downstream, so a device that only offers
 + * UYVY has to be captured as UYVY and byte swapped afterwards. */
 +static bool yuv422_needs_swap(v4l2_src_t *v4l2)
@@ -94,7 +94,7 @@ and the same source must remain reusable after failed negotiation.
 +    v4l2->fd = -1;
      return ESP_CAPTURE_ERR_NO_RESOURCES;
  }
-
+ 
 @@ -272,7 +297,7 @@
          return ESP_CAPTURE_ERR_NOT_SUPPORTED;
      }
@@ -116,7 +116,7 @@ and the same source must remain reusable after failed negotiation.
 @@ -439,7 +464,8 @@
      }
  }
-
+ 
 -static void convert_rgb565(uint32_t w, uint32_t h, uint8_t *src)
 +/* Swaps the bytes of every 16-bit word: RGB565 endianness, and UYVY <-> YUYV. */
 +static void swap_short16(uint32_t w, uint32_t h, uint8_t *src)

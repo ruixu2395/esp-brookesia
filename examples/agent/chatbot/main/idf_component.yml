@@ -50,3 +50,9 @@ dependencies:
   espressif/brookesia_gui_lvgl:
     version: "0.8.*"
     override_path: ../../../../gui/brookesia_gui_lvgl
+
+  # main/modules/display/display.cpp calls esp_lv_adapter_lock()/esp_lv_adapter_unlock()
+  # directly, while brookesia_gui_lvgl only pulls this in as a private dependency.
+  espressif/esp_lvgl_adapter:
+    version: "0.6.*"
+    require: private
