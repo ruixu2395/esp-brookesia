@@ -68,12 +68,11 @@ def build(enhanced, assets):
         "viewport_size": viewport, "sprite_size": sprite, "source_frames": paths_by_clip,
         "files": {name: {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
                   for name, data in files.items()}})
-    # Show a whole loop for each gesture; this is an asset demonstration, not
-    # a claim that the firmware's idle schedule waits for every loop to finish.
+    # Show the actual continuous close-up, returning at the loop seam.
     preview = []
     for title, sequence in [("20 fps / zoom", [f[1] for f in camera]),
-                             *[("20 fps / " + clip, preview_frames[clip])
-                               for clip in ("idle", "success", "thinking", "idle_yawn")]]:
+                            ("20 fps / continuous blink", preview_frames["idle"] * 2),
+                            ("20 fps / zoom out", [f[1] for f in camera[::-1]])]:
         for frame in sequence:
             screen = Image.new("RGB", (360, 360), "black")
             screen.paste(frame, (0, 40))

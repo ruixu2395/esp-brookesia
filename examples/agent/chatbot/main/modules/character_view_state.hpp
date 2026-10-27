@@ -2,7 +2,6 @@
 #pragma once
 
 #include <algorithm>
-#include <array>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -17,22 +16,12 @@ constexpr int VIEW_FRAMES = 24; // 20 fps, build_dafeiyu_smooth.py
 constexpr int VIEW_FRAMES = 18;
 #endif
 
-struct IdleExpression {
-    const char *emoji;
-    int64_t duration_ms;
-};
-
-// Give each neutral pause time to finish its three-second blink. Short gestures
-// are separated by neutral pauses; never turn a real working/error state into
-// an idle performance. Reuse the existing restored animations without reducing
-// their palette or spending additional animation flash.
-inline constexpr std::array<IdleExpression, 10> IDLE_EXPRESSIONS{{
-    {"neutral", 3300}, {"idle_smile", 1400},
-    {"neutral", 4200}, {"idle_curious", 1700},
-    {"neutral", 3600}, {"idle_smile", 1100},
-    {"neutral", 5100}, {"idle_drowsy", 1800},
-    {"neutral", 3900}, {"relaxed", 3300},
-}};
+// One continuous face performance. Keep these periods in sync with EAF tables.
+#if defined(CONFIG_EXAMPLE_DAFEIYU_SMOOTH_32M) && CONFIG_EXAMPLE_DAFEIYU_SMOOTH_32M
+constexpr int64_t FACE_LOOP_MS = 4300; // 86 frames at 20 fps
+#else
+constexpr int64_t FACE_LOOP_MS = 3000; // 36 frames at 12 fps
+#endif
 
 inline std::optional<bool> voice_command(std::string text)
 {
@@ -87,41 +76,41 @@ public:
             dirty_ = true;
         }
         if (target_face_ != face_) {
+            // Finish the current blink cycle before returning the camera to its
+            // neutral endpoint. The deadline is captured once, not rolled forward.
+            if (face_ && face_loop_started_ >= 0) {
+                if (exit_at_ < 0) {
+                    const int64_t elapsed = std::max<int64_t>(0, now - face_loop_started_);
+                    exit_at_ = face_loop_started_ + ((elapsed + FACE_LOOP_MS - 1) / FACE_LOOP_MS) * FACE_LOOP_MS;
+                }
+                if (now < exit_at_) return true;
+            }
             if (!render(Render{"view_zoom", "", 0, target_face_ ? 0 : VIEW_FRAMES,
                                target_face_ ? VIEW_FRAMES - 1 : 2 * VIEW_FRAMES - 1})) return false;
-            idle_active_ = false;
+            face_loop_started_ = -1;
             transition_face_ = target_face_;
             transitioning_ = true;
             transition_until_ = now + TRANSITION_MS;
+            return true;
+        }
+        exit_at_ = -1; // A cancelled exit keeps the ongoing performance intact.
+        if (face_) {
+            // Speaking/DSH/emotion events remain in the logical state, but do
+            // not splice another character pose into the continuous close-up.
+            if (face_loop_started_ < 0) {
+                if (!render(Render{"face_neutral", "", 0})) return false;
+                face_loop_started_ = now;
+            }
+            dirty_ = false;
             return true;
         }
         if (!animation_.empty() && now >= animation_until_) {
             animation_.clear();
             dirty_ = true;
         }
-        std::string displayed_emoji = emoji_;
-        const bool idle = face_ && animation_.empty() &&
-                          (emoji_ == "neutral" || emoji_ == "idle" || emoji_ == "relaxed");
-        if (idle) {
-            if (!idle_active_) {
-                idle_active_ = true;
-                idle_step_ = 0;
-                idle_until_ = now + IDLE_EXPRESSIONS[0].duration_ms;
-                dirty_ = true;
-            } else if (now >= idle_until_) {
-                idle_step_ = (idle_step_ + 1) % IDLE_EXPRESSIONS.size();
-                // If the renderer was delayed, resume with one complete gesture
-                // instead of racing through every missed expression.
-                idle_until_ = now + IDLE_EXPRESSIONS[idle_step_].duration_ms;
-                dirty_ = true;
-            }
-            displayed_emoji = IDLE_EXPRESSIONS[idle_step_].emoji;
-        } else {
-            idle_active_ = false;
-        }
         if (!dirty_) return true;
         const std::string prefix = face_ ? "face_" : "";
-        Render command{prefix + displayed_emoji, animation_.empty() ? "" : prefix + animation_,
+        Render command{prefix + emoji_, animation_.empty() ? "" : prefix + animation_,
                        animation_.empty() ? 0 : animation_until_ - now};
         if (!render(command)) return false;
         dirty_ = false;
@@ -138,8 +127,7 @@ private:
     std::string emoji_ = "neutral";
     std::string animation_;
     int64_t animation_until_ = 0;
-    bool idle_active_ = false;
-    size_t idle_step_ = 0;
-    int64_t idle_until_ = 0;
+    int64_t face_loop_started_ = -1;
+    int64_t exit_at_ = -1;
 };
 } // namespace character_view

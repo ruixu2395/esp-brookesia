@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Preview the firmware idle expression schedule using the shipped source frames."""
+"""Preview the uninterrupted close-up blink using the shipped source frames."""
 import argparse
 import json
 from pathlib import Path
-import re
 
 from PIL import Image, ImageDraw
 from import_dafeiyu import encode_frame
@@ -15,10 +14,8 @@ def preview(enhanced, output):
     assets = root / "assets/dafeiyu/closeup"
     profile = json.loads((assets / "source.json").read_text(encoding="utf-8"))["profiles"]["360_360"]
     aliases = {item["emote"]: item for item in json.loads((assets / "360_360/emote.json").read_text())}
-    state = (root / "main/modules/character_view_state.hpp").read_text(encoding="utf-8")
-    schedule = re.findall(r'\{"([^"]+)", (\d+)\}', state.split("IDLE_EXPRESSIONS{{", 1)[1].split("}};", 1)[0])
-    if not schedule:
-        raise ValueError("No firmware idle schedule found")
+    # Two uninterrupted cycles: state changes no longer replace the close-up.
+    schedule = [("neutral", 6000)]
     cache, frames, delays = {}, [], []
     elapsed = previous = 0
     labels = {"neutral": "Blink / relaxed", "relaxed": "Blink / relaxed", "idle_smile": "Smile",
