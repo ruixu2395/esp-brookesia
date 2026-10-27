@@ -33,15 +33,34 @@ void worker(void *)
             success = state.tick(now_ms(), [](const character_view::Render &command) {
                 // All expression sources use this worker. Keep the emergency
                 // dialog from covering the camera move or retaining an old view.
-                if (!Emote::call_function_sync(Emote::FunctionId::StopAnimation)) return false;
-                if (command.first_frame >= 0) {
-                    return Emote::call_function_sync(Emote::FunctionId::SetEmojiSegment, command.emoji,
-                        double(command.first_frame), double(command.last_frame)).has_value();
+                // Stopping is best effort: esp_emote reports an error when no
+                // dialog is active, and that must not block the character view
+                // (it left the screen stuck on whatever was rendered last).
+                if (auto stopped = Emote::call_function_sync(Emote::FunctionId::StopAnimation); !stopped) {
+                    ESP_LOGW(TAG, "StopAnimation: %s", stopped.error().c_str());
                 }
-                if (!Emote::call_function_sync(Emote::FunctionId::SetEmoji, command.emoji)) return false;
+                if (command.first_frame >= 0) {
+                    auto segment = Emote::call_function_sync(Emote::FunctionId::SetEmojiSegment, command.emoji,
+                                                            double(command.first_frame), double(command.last_frame));
+                    if (!segment) {
+                        ESP_LOGW(TAG, "SetEmojiSegment(%s, %d..%d): %s", command.emoji.c_str(),
+                                 command.first_frame, command.last_frame, segment.error().c_str());
+                        return false;
+                    }
+                    return true;
+                }
+                if (auto emoji = Emote::call_function_sync(Emote::FunctionId::SetEmoji, command.emoji); !emoji) {
+                    ESP_LOGW(TAG, "SetEmoji(%s): %s", command.emoji.c_str(), emoji.error().c_str());
+                    return false;
+                }
                 if (!command.animation.empty()) {
-                    return Emote::call_function_sync(Emote::FunctionId::InsertAnimation,
-                                                    command.animation, double(command.animation_ms)).has_value();
+                    auto inserted = Emote::call_function_sync(Emote::FunctionId::InsertAnimation,
+                                                              command.animation, double(command.animation_ms));
+                    if (!inserted) {
+                        ESP_LOGW(TAG, "InsertAnimation(%s): %s", command.animation.c_str(),
+                                 inserted.error().c_str());
+                        return false;
+                    }
                 }
                 return true;
             });

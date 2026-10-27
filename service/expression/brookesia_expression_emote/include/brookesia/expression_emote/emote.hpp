@@ -149,10 +149,6 @@ private:
                 Helper, Helper::FunctionId::SetEmoji, std::string,
                 function_set_emoji(PARAM)
             ),
-            BROOKESIA_SERVICE_HELPER_FUNC_HANDLER_3(
-                Helper, Helper::FunctionId::SetEmojiSegment, std::string, double, double,
-                function_set_emoji_segment(PARAM1, PARAM2, PARAM3)
-            ),
             BROOKESIA_SERVICE_HELPER_FUNC_HANDLER_0(
                 Helper, Helper::FunctionId::HideEmoji,
                 function_hide_emoji()
@@ -196,6 +192,12 @@ private:
             BROOKESIA_SERVICE_HELPER_FUNC_HANDLER_0(
                 Helper, Helper::FunctionId::RefreshAll,
                 function_refresh_all()
+            ),
+            // Must stay last: register_functions() pairs schemas[i] with handlers[i],
+            // so the handler order has to match FunctionId / FUNCTION_SPECS order.
+            BROOKESIA_SERVICE_HELPER_FUNC_HANDLER_3(
+                Helper, Helper::FunctionId::SetEmojiSegment, std::string, double, double,
+                function_set_emoji_segment(PARAM1, PARAM2, PARAM3)
             ),
         };
     }

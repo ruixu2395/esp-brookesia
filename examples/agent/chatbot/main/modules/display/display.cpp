@@ -226,13 +226,19 @@ bool Display::start_expression_emote_assets()
 #endif
 
     {
+        // This call only paints the status label, so it must never abort the display
+        // init: aborting here leaves the character unrendered and the screen stuck on
+        // the previous frame, which looks like the flashed animation assets are wrong.
+        // Pass both parameters positionally: one string-only argument does not resolve
+        // to this function's schema and fails with "Parameter not found: TimeoutMs".
         auto result = EmoteHelper::call_function_sync(
                           EmoteHelper::FunctionId::SetEventMessage,
-                          BROOKESIA_DESCRIBE_TO_STR(EmoteHelper::EventMessageType::Idle)
+                          std::string(BROOKESIA_DESCRIBE_TO_STR(EmoteHelper::EventMessageType::Idle)),
+                          std::string{}
                       );
-        BROOKESIA_CHECK_FALSE_RETURN(
-            result.has_value(), false, "Failed to set emote event message: %1%", result.error()
-        );
+        if (!result.has_value()) {
+            BROOKESIA_LOGW("Failed to set emote event message: %1%", result.error());
+        }
     }
 
     return true;
