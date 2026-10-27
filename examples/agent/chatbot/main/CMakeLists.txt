@@ -84,6 +84,21 @@ if(CONFIG_EXAMPLE_USE_DAFEIYU_EXPRESSIONS)
     get_component_path("esp_emote_assets" EMOTE_ASSETS_COMPONENT_DIR)
     partition_table_get_partition_info(ASSETS_PARTITION_SIZE
         "--partition-name ${ASSETS_PARTITION_NAME}" "size")
+    if(CONFIG_EXAMPLE_DAFEIYU_SMOOTH_32M)
+        if(NOT CONFIG_IDF_TARGET_ESP32S3 OR NOT CONFIG_ESPTOOLPY_FLASHSIZE_32MB OR NOT CONFIG_SPIRAM
+           OR NOT CONFIG_SPIRAM_USE_MALLOC
+           OR NOT CONFIG_EXAMPLE_DAFEIYU_CLOSEUP_ENABLE
+           OR NOT CONFIG_BROOKESIA_HAL_ADAPTOR_DISPLAY_LCD_PANEL_H_RES EQUAL 360
+           OR NOT CONFIG_BROOKESIA_HAL_ADAPTOR_DISPLAY_LCD_PANEL_V_RES EQUAL 360)
+            message(FATAL_ERROR "Smooth Dafeiyu requires ESP32-S3, 32 MB flash, PSRAM in malloc heap, close-up and a 360x360 panel")
+        endif()
+        math(EXPR DAFEIYU_PARTITION_BYTES "${ASSETS_PARTITION_SIZE}")
+        if(DAFEIYU_PARTITION_BYTES LESS 12582912)
+            message(FATAL_ERROR "Smooth Dafeiyu needs a 12 MiB anim_icon partition; select partitions_32m.csv")
+        endif()
+        list(APPEND DAFEIYU_VIEW_ARGS --smooth)
+        set(DAFEIYU_PROFILE_DIR "${DAFEIYU_ASSETS_DIR}/smooth/${RESOLUTION}")
+    endif()
     file(GLOB_RECURSE DAFEIYU_ASSET_FILES CONFIGURE_DEPENDS
         "${DAFEIYU_PROFILE_DIR}/*.eaf"
         "${DAFEIYU_PROFILE_DIR}/*.json")

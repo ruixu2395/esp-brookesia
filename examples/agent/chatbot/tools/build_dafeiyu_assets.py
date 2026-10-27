@@ -51,7 +51,9 @@ def pack_image(files, name_length):
     return struct.pack("<III", len(files), sum(body) & 0xffff, len(body)) + body
 
 
-def build_files(component, assets, resolution, closeup=False):
+def build_files(component, assets, resolution, closeup=False, smooth=False):
+    if smooth and (not closeup or resolution != "360_360"):
+        raise ValueError("Smooth assets require close-up and a 360x360 panel")
     config = read_json(component / resolution / "config.json")
     layout = read_json(component / resolution / "layout.json")
     # The original layout mirrors one eye into a pair. A complete character must
@@ -62,6 +64,8 @@ def build_files(component, assets, resolution, closeup=False):
             obj["anim"] = {"mirror": "false"}
     files, emojis = {}, []
     resource_dir = assets / "closeup" / resolution if closeup else assets / resolution
+    if smooth:
+        resource_dir = assets / "smooth" / resolution
     for item in read_json(resource_dir / "emote.json"):
         name = item["src"]
         if Path(name).name != name:
@@ -97,13 +101,16 @@ def main():
     parser.add_argument("--assets", type=Path, required=True)
     parser.add_argument("--resolution", choices=("320_240", "360_360", "1024_600"), required=True)
     parser.add_argument("--closeup", action="store_true", help="Use full-body/face camera resources")
+    parser.add_argument("--smooth", action="store_true", help="Use 32 MB / 20 fps close-up bundle")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--name-length", type=int, default=32)
     parser.add_argument("--partition-size", type=parse_size, default=3000 * 1024)
     args = parser.parse_args()
     if args.name_length <= 0 or args.partition_size <= 0:
         parser.error("name length and partition size must be positive")
-    files = build_files(args.component, args.assets, args.resolution, args.closeup)
+    if args.smooth and args.partition_size < 12 * 1024 * 1024:
+        parser.error("Smooth assets require a 12 MiB animation partition")
+    files = build_files(args.component, args.assets, args.resolution, args.closeup, args.smooth)
     image = pack_image(files, args.name_length)
     if len(image) > args.partition_size:
         raise ValueError(f"Dafeiyu assets need {len(image)} bytes; anim_icon has {args.partition_size}. "

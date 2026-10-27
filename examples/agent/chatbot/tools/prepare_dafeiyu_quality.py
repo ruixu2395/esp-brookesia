@@ -20,7 +20,16 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def prepare(source, dsh_source, output, ffmpeg, upscaler):
+def smooth_paths(original, clip):
+    # Sample the 24 fps video at 20 fps. Keep elapsed action time, rather than
+    # playing a short 12 fps excerpt faster. All returned indices are unique.
+    first = 29 if clip == "idle" else int(Path(original["profiles"]["360_360"]["clips"][clip]
+                                             ["source_frames"][0]["path"]).stem.rsplit("_", 1)[1])
+    count = 44 if clip == "idle" else 24
+    return [f"{clip}/{clip}_{first + round(i * 24 / 20):03d}.webp" for i in range(count)]
+
+
+def prepare(source, dsh_source, output, ffmpeg, upscaler, smooth=False):
     source_manifest = json.loads((source / "assets/pet-manifest.json").read_text(encoding="utf-8"))
     original = json.loads((Path(__file__).resolve().parents[1] / "assets/dafeiyu/source.json").read_text(encoding="utf-8"))
     origin = source_manifest["assetSource"]
@@ -40,6 +49,8 @@ def prepare(source, dsh_source, output, ffmpeg, upscaler):
         for clip in CLIPS:
             paths = list(BLINK_SOURCES) if clip == "idle" else list(dict.fromkeys(
                 f["path"] for f in original["profiles"]["360_360"]["clips"][clip]["source_frames"]))[:4]
+            if smooth:
+                paths = smooth_paths(original, clip)
             record = source_manifest["clips"][clip]["source"]
             video = work / f"{clip}.webm"
             with video.open("wb") as target:
@@ -80,6 +91,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("source", "dsh-source", "output", "ffmpeg", "upscaler"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--smooth", action="store_true", help="Prepare continuous 20 fps sequences for 32 MB flash")
     args = parser.parse_args()
     prepare(args.source.resolve(), args.dsh_source.resolve(), args.output.resolve(),
-            args.ffmpeg.resolve(), args.upscaler.resolve())
+            args.ffmpeg.resolve(), args.upscaler.resolve(), args.smooth)

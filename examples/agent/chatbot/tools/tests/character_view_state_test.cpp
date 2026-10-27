@@ -23,7 +23,7 @@ int main()
     state.set_face(true);
     state.tick(100, render);
     assert(seen.size() == 1 && seen.back().emoji == "view_zoom");
-    assert(seen.back().first_frame == 0 && seen.back().last_frame == 17);
+    assert(seen.back().first_frame == 0 && seen.back().last_frame == VIEW_FRAMES - 1);
     state.set_face(true); // ASR followed by MCP must not restart the move.
     state.set_emoji("speaking");
     state.insert_animation("happy", 3000, 300);
@@ -43,7 +43,7 @@ int main()
     assert(seen.size() == before_repeat); // Status polling must not starve the blink loop.
     state.set_face(false);
     state.tick(3400, render);
-    assert(seen.back().first_frame == 18 && seen.back().last_frame == 35);
+    assert(seen.back().first_frame == VIEW_FRAMES && seen.back().last_frame == 2 * VIEW_FRAMES - 1);
     state.set_emoji("thinking"); // DSH/voice events keep their latest intent.
     state.tick(4600, render);
     assert(seen.back().emoji == "thinking");
@@ -56,7 +56,7 @@ int main()
     queued.tick(500, render);
     assert(seen.size() == 1);
     queued.tick(1200, render);
-    assert(seen.size() == 2 && seen.back().first_frame == 18);
+    assert(seen.size() == 2 && seen.back().first_frame == VIEW_FRAMES);
     queued.tick(2400, render);
     assert(seen.back().emoji == "neutral");
 

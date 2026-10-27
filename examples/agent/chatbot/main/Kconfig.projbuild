@@ -18,6 +18,16 @@ menu "Example Configuration"
             keep the existing 3000 KiB anim_icon partition size unchanged.
             Rebuild and flash both the firmware and the animation partition.
 
+    config EXAMPLE_DAFEIYU_SMOOTH_32M
+        bool "Use 20 fps Dafeiyu close-up animations (S3, 32 MB, 360x360)"
+        depends on EXAMPLE_DAFEIYU_CLOSEUP_ENABLE && IDF_TARGET_ESP32S3 && ESPTOOLPY_FLASHSIZE_32MB && SPIRAM && SPIRAM_USE_MALLOC
+        default n
+        help
+            Select continuous 20 fps close-up frames and a 24-frame camera move.
+            Requires a 360x360 panel and at least 12 MiB in anim_icon; use
+            partitions_32m.csv. Display bus and audio concurrency must be tested
+            on hardware. This does not change board pins or PSRAM clock settings.
+
     menuconfig EXAMPLE_AGENTS_ENABLE_COZE
         bool "Enable Coze agent"
         select BROOKESIA_AGENT_COZE_ENABLE_AUTO_REGISTER

@@ -9,9 +9,13 @@
 
 namespace character_view {
 
-// Shared with tools/import_dafeiyu_closeup.py: 18 frames at 15 fps.
+// Must match the selected resource bundle. Both moves take 1.2 seconds.
 constexpr int64_t TRANSITION_MS = 1200;
+#if defined(CONFIG_EXAMPLE_DAFEIYU_SMOOTH_32M) && CONFIG_EXAMPLE_DAFEIYU_SMOOTH_32M
+constexpr int VIEW_FRAMES = 24; // 20 fps, build_dafeiyu_smooth.py
+#else
 constexpr int VIEW_FRAMES = 18;
+#endif
 
 struct IdleExpression {
     const char *emoji;

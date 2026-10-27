@@ -12,13 +12,16 @@ class NativePetStateTest(unittest.TestCase):
     def test_character_view_commands_transitions_and_arbitration(self):
         root = Path(__file__).resolve().parents[2]
         with tempfile.TemporaryDirectory() as folder:
-            executable = Path(folder) / 'character-view-test.exe'
-            subprocess.run(['g++', '-std=c++17', '-Wall', '-Wextra', '-Werror',
-                            '-finput-charset=UTF-8', '-fexec-charset=UTF-8',
-                            '-I', str(root / 'main'), str(Path(__file__).with_name('character_view_state_test.cpp')),
-                            '-o', str(executable)], check=True, capture_output=True, text=True)
-            result = subprocess.run([str(executable)], check=True, capture_output=True, text=True)
-            self.assertIn('checks passed', result.stdout)
+            for smooth in (0, 1):
+                with self.subTest(smooth=smooth):
+                    executable = Path(folder) / f'character-view-{smooth}.exe'
+                    subprocess.run(['g++', '-std=c++17', '-Wall', '-Wextra', '-Werror',
+                                    f'-DCONFIG_EXAMPLE_DAFEIYU_SMOOTH_32M={smooth}',
+                                    '-finput-charset=UTF-8', '-fexec-charset=UTF-8',
+                                    '-I', str(root / 'main'), str(Path(__file__).with_name('character_view_state_test.cpp')),
+                                    '-o', str(executable)], check=True, capture_output=True, text=True)
+                    result = subprocess.run([str(executable)], check=True, capture_output=True, text=True)
+                    self.assertIn('checks passed', result.stdout)
 
     @unittest.skipUnless(shutil.which('g++'), 'g++ is needed for the native firmware state test')
     def test_native_arbitration_and_expiration(self):

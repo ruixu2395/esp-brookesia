@@ -188,6 +188,11 @@ bool Display::start_expression_emote_assets()
     {
         // Set emote config
         EmoteHelper::Config config{
+#if CONFIG_EXAMPLE_DAFEIYU_SMOOTH_32M
+            // Match the 50 ms animation cadence; avoid a 30 Hz render cap
+            // introducing alternating 33/66 ms presentation intervals.
+            .fps = 20,
+#endif
             .task_priority = 6,
             .task_stack = 8 * 1024,
             .task_affinity = CONFIG_BROOKESIA_HAL_ADAPTOR_DISPLAY_LCD_PANEL_INIT_THREAD_CORE_ID,
