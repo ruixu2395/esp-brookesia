@@ -118,7 +118,7 @@ esp_err_t receive_state(httpd_req_t *req)
 
 bool start_server()
 {
-    auto config = HTTPD_DEFAULT_CONFIG();
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG();  // auto cannot deduce the mixed unsigned/int brace init
     config.server_port = CONFIG_EXAMPLE_DSH_PET_SYNC_PORT;
     // Keep the default server's UDP control socket free for Wi-Fi provisioning.
     config.ctrl_port = 32769;

@@ -1,9 +1,10 @@
-# Existing partition order/sizes are preserved; only anim_icon grows.
+# anim_icon grows to 20M so the dsh-pet animation set fits; factory shrinks to 7M
+# (the app image is ~5.6 MB, so 7M keeps flash headroom for OTA-less rebuilds).
 # Name,       Type, SubType, Offset,  Size, Flags
 nvs,          data, nvs,     ,        0x6000,
 phy_init,     data, phy,     ,        0x1000,
 model,        data, littlefs, ,       600K,
-factory,      app,  factory, ,        11M,
+factory,      app,  factory, ,        7M,
 storage,      data, fat,     ,        500K,
 littlefs_data, data, littlefs, ,      500K,
-anim_icon,    data, littlefs, ,       12M,
+anim_icon,    data, littlefs, ,       20M,

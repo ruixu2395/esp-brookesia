@@ -55,7 +55,7 @@ bool Display::start(const Config &config)
     BROOKESIA_CHECK_FALSE_RETURN(start_ui_state_machine(), false, "Failed to start UI state machine");
 
     // Start gesture detection
-    BROOKESIA_CHECK_FALSE_RETURN(start_gesture(), false, "Failed to start gesture");
+    // Gesture detection disabled on purpose: swiping up used to open the settings screen.
 
     auto delayed_task = []() {
         auto result = DisplayHelper::call_function_async(
@@ -335,7 +335,7 @@ bool Display::start_ui_state_machine()
         if (lv_obj_t *active_screen = lv_screen_active(); active_screen != nullptr) {
             const lv_style_selector_t main_default =
                 static_cast<lv_style_selector_t>(LV_PART_MAIN) | static_cast<lv_style_selector_t>(LV_STATE_DEFAULT);
-            lv_obj_set_style_bg_color(active_screen, lv_color_black(), main_default);
+            lv_obj_set_style_bg_color(active_screen, lv_color_white(), main_default);
             lv_obj_set_style_bg_opa(active_screen, LV_OPA_COVER, main_default);
         }
         BROOKESIA_CHECK_EXCEPTION_RETURN(
